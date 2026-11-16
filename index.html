@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="bn"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bill Distribution Apps</title>
+<meta name="application-name" content="Apps"><meta name="apple-mobile-web-app-title" content="Apps"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="theme-color" content="#0b7a4b">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b7a4b'/%3E%3Ctext x='32' y='41' font-size='20' font-weight='bold' text-anchor='middle' fill='white' font-family='Arial'%3EApps%3C/text%3E%3C/svg%3E">
+<script src="xlsx.full.min.js" onerror="var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';document.head.appendChild(s)"></script>
+<style>
+:root{--bg:#f4f6f8;--card:#fff;--tx:#1b2430;--mut:#667;--pri:#0b7a4b;--prt:#fff;--bd:#d5dbe1;--dng:#c0392b;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12171c;--card:#1c242c;--tx:#e8edf2;--mut:#9aa6b2;--pri:#2fb37a;--prt:#06130d;--bd:#33404c;--dng:#ff7b6b;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#12171c;--card:#1c242c;--tx:#e8edf2;--mut:#9aa6b2;--pri:#2fb37a;--prt:#06130d;--bd:#33404c;--dng:#ff7b6b;color-scheme:dark}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font-family:"Noto Sans Bengali","Kalpurush",system-ui,sans-serif;font-size:16px}
+header{background:var(--pri);color:var(--prt);padding:12px 14px;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+header h1{margin:0;font-size:17px}header small{opacity:.9}
+main{padding:12px;max-width:900px;margin:auto}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:12px;margin-bottom:10px}
+.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.sp{flex:1}
+button{font:inherit;border:1px solid var(--bd);background:var(--card);color:var(--tx);padding:8px 12px;border-radius:8px}
+button.p{background:var(--pri);color:var(--prt);border-color:var(--pri)}button.d{color:var(--dng)}button.s{padding:4px 8px;font-size:13px}
+input[type=text],input:not([type]),textarea{font:inherit;width:100%;padding:9px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)}
+label{display:block;margin:8px 0 3px;color:var(--mut);font-size:14px}
+.chk{display:flex;flex-wrap:wrap;gap:6px}.chk label{display:flex;align-items:center;gap:5px;margin:0;border:1px solid var(--bd);border-radius:8px;padding:6px 9px;color:var(--tx)}
+.ent{display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--bd)}
+.no{min-width:34px;color:var(--mut);text-align:right}.acc{font-weight:700;font-size:18px}
+.tag{font-size:11px;border:1px solid var(--pri);color:var(--pri);border-radius:5px;padding:0 4px;margin-left:3px}
+.note{color:var(--mut);font-size:13px}
+.ins{display:flex;flex-direction:column;gap:3px}
+.dup{background:rgba(192,57,43,.12)}
+.grid{display:grid;grid-auto-flow:column;grid-template-rows:repeat(30,auto);gap:0;overflow-x:auto;border:1px solid var(--bd)}
+.cell{border:1px solid var(--bd);padding:4px 8px;min-width:78px;text-align:center;background:var(--card)}
+.cell b{font-size:15px}.cell small{display:block;color:var(--mut);font-size:11px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center;z-index:20}
+.box{background:var(--card);width:100%;max-width:520px;max-height:92%;overflow:auto;border-radius:14px 14px 0 0;padding:14px;padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+.top{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+#ps{display:none}
+@media print{@page{size:A4;margin:10mm 10mm 10mm 25.4mm}body{background:#fff}header,#app,#mod,.noprint{display:none!important}#ps{display:block;color:#000}.pg{page-break-after:always}.ph{display:flex;justify-content:space-between;font-size:18px;margin-bottom:6px}.pg table{width:100%;border-collapse:collapse;table-layout:fixed}.pg td{border:1px solid #000;text-align:center;padding:3px 1px;font-size:16px;height:40px;overflow:hidden}.pg td small{display:block;font-size:9px;line-height:1.1}.pn{text-align:center;font-weight:700;text-decoration:underline;margin-top:8px}}
+.modal{align-items:center;padding:12px}
+.box{border-radius:16px;max-width:460px;padding:0}
+.box h3{background:var(--pri);color:var(--prt);margin:0!important;padding:14px 16px;font-size:18px}
+.box>*:not(h3){margin-left:16px;margin-right:16px}
+.box>.row:first-of-type{margin-top:6px}
+.box label{font-weight:600;font-size:14px}
+.box input:disabled{background:transparent;border-style:dashed;color:var(--mut);opacity:1}
+.box #f1{font-size:24px;font-weight:700;text-align:center;padding:12px}
+.box .chk{gap:8px}
+.box .chk label{padding:8px 13px;border-radius:999px;cursor:pointer;font-weight:600}
+.box .chk input{accent-color:var(--pri);width:17px;height:17px;margin:0}
+.box .chk label:has(input:checked){background:var(--pri);color:var(--prt);border-color:var(--pri)}
+.box .chk label:has(input:checked) small{color:var(--prt)!important;opacity:.85}
+.box .chk label:has(#t_DC:checked){background:var(--dng);border-color:var(--dng);color:#fff}
+.box .chk label:has(#t_DC:checked) small{color:#fff!important}
+.box>.row:last-child{margin-top:20px!important;margin-bottom:16px}
+.box>.row:last-child button{padding:11px 14px;font-weight:600}
+.box input:disabled{font-weight:800;font-size:19px;color:var(--tx);-webkit-text-fill-color:var(--tx);border-color:var(--tx)}
+.box #nwf input{font-size:16px}
+.box .tp{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.box .tp label{padding:7px 6px;font-size:13px;border-radius:12px;flex-wrap:wrap;gap:2px 4px}
+.box .tp small{font-size:10px}
+.box .tp{display:flex;flex-wrap:wrap;gap:5px}
+.box .tp label{white-space:nowrap;padding:5px 7px;font-size:12px;gap:3px;border-radius:999px}
+.box .tp small{font-size:10px}
+.box .tp input{width:15px;height:15px}
+.aco{margin-left:8px;font-size:13px;border:1px solid var(--pri);color:var(--pri);border-radius:999px;padding:2px 8px;white-space:nowrap}.aco input{accent-color:var(--pri)}
+.box .tp{display:block}.box .tp .tr{display:flex;gap:5px;margin-bottom:5px}
+.box .tp label{flex:1 1 auto;justify-content:center;padding:5px 4px}
+.cell.nw{min-width:130px}.cell.nw b{font-size:13px}.cell.nw small{font-size:10px;line-height:1.3}
+.mrg{border-left:3px solid var(--pri);padding-left:6px}
+select{font:inherit;width:100%;padding:9px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)}
+.box>select,.box>input:not([type=checkbox]):not([type=radio]){width:calc(100% - 32px)}
+header h1::after{content:" ✎";font-size:13px;opacity:.7}
+.tb{flex-wrap:nowrap}.tb button{flex:1 1 auto;padding:8px 6px;font-size:13px;white-space:nowrap;min-width:0}
+.cell small b{font-size:12px;color:var(--tx)}
+header{padding-right:56px}.hsr{position:absolute;right:10px;top:50%;transform:translateY(-50%);border:none;background:rgba(255,255,255,.28);color:inherit;font-size:18px;padding:6px 11px;border-radius:8px}
+.hl{background:rgba(47,179,122,.25);outline:2px solid var(--pri);border-radius:6px}
+</style></head><body>
+<header><button class="hsr" onclick="openSearch()">🔍</button><div id="hs" style="font-size:12px;opacity:.9"></div><h1 id="ht" onclick="openOrg(true)" style="cursor:pointer"></h1><small id="crumb"></small></header>
+<main id="app"></main><footer style="text-align:center;padding:10px 12px 26px;color:var(--mut);font-size:13px">Powered By : Bilash Chondro</footer><div id="mod"></div><div id="ps"></div>
+<script>
+var K='pbs_serial_demo_v1',D={s:[]},V={s:null,b:null,mode:'list'},M=null;
+try{var r=localStorage.getItem(K);if(r)D=JSON.parse(r)}catch(e){}
+var IDB=null,PERSIST=false,SAVEERR=false,SNAPS=[],TT=null;
+function save(){var j=JSON.stringify(D);try{localStorage.setItem(K,j);SAVEERR=false}catch(e){SAVEERR=true}idbPut('main',j)}
+function idb(){return new Promise(function(res){if(IDB)return res(IDB);try{var r=indexedDB.open('pbs_serial_safe',1);r.onupgradeneeded=function(){r.result.createObjectStore('kv')};r.onsuccess=function(){IDB=r.result;res(IDB)};r.onerror=function(){res(null)};r.onblocked=function(){res(null)}}catch(e){res(null)}})}
+function idbPut(k,v){return idb().then(function(db){return new Promise(function(res){if(!db)return res();try{var t=db.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=res;t.onerror=res;t.onabort=res}catch(e){res()}})})}
+function idbGet(k){return idb().then(function(db){return new Promise(function(res){if(!db)return res(null);try{var q=db.transaction('kv').objectStore('kv').get(k);q.onsuccess=function(){res(q.result||null)};q.onerror=function(){res(null)}}catch(e){res(null)}})})}
+function idbDel(k){return idb().then(function(db){if(!db)return;try{db.transaction('kv','readwrite').objectStore('kv').delete(k)}catch(e){}})}
+function idbAll(){return idb().then(function(db){return new Promise(function(res){var o=[];if(!db)return res(o);try{var q=db.transaction('kv').objectStore('kv').openCursor();q.onsuccess=function(){var c=q.result;if(c){o.push({k:c.key,v:c.value});c.continue()}else res(o)};q.onerror=function(){res(o)}}catch(e){res(o)}})})}
+function snap(why){if(!D.s.length)return Promise.resolve();var t=Date.now();return idbPut('snap:'+t,{t:t,why:why,d:JSON.stringify(D)}).then(function(){return idbAll()}).then(function(a){a.filter(function(r){return r.k.indexOf('snap:')==0}).sort(function(x,y){return y.v.t-x.v.t}).slice(20).forEach(function(r){idbDel(r.k)})})}
+function fdt(t){var d=new Date(t),p=function(n){return('0'+n).slice(-2)};return bn(p(d.getDate())+'/'+p(d.getMonth()+1)+'/'+d.getFullYear()+' '+p(d.getHours())+':'+p(d.getMinutes()))}
+function toast(m,fn){var t=document.getElementById('tst');if(!t){t=document.createElement('div');t.id='tst';t.style.cssText='position:fixed;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom,0px));background:#222;color:#fff;border-radius:10px;padding:12px 14px;z-index:30;display:flex;gap:10px;align-items:center';document.body.appendChild(t)}
+ t.innerHTML='<span style="flex:1">'+m+'</span>'+(fn?'<button id="tu" style="background:#2fb37a;color:#06130d;border:none;font-weight:700">ফিরিয়ে আনুন</button>':'');t.style.display='flex';if(fn)document.getElementById('tu').onclick=function(){t.style.display='none';fn()};clearTimeout(TT);TT=setTimeout(function(){t.style.display='none'},9000)}
+function warnHtml(){var h='';if(SAVEERR)h+='<div class="card" style="border-color:var(--dng);color:var(--dng)">⚠ তথ্য ব্রাউজারে সেভ হচ্ছে না! এখনই ব্যাকআপ ফাইল নিন।</div>';
+ if(D.s.length){var d=D.lb?Math.floor((Date.now()-D.lb)/864e5):null;if(d==null||d>=7)h+='<div class="card" style="border-color:var(--dng)">⚠ '+(d==null?'এখনো কোনো ব্যাকআপ ফাইল নেওয়া হয়নি':'শেষ ব্যাকআপ ফাইল '+bn(d)+' দিন আগের')+' — <b style="text-decoration:underline" onclick="openBackup()">এখনই ব্যাকআপ নিন</b></div>'}return h}
+function boot(){try{if(navigator.storage&&navigator.storage.persisted)navigator.storage.persisted().then(function(p){PERSIST=p;if(!p&&navigator.storage.persist)navigator.storage.persist().then(function(g){PERSIST=g})})}catch(e){}
+ if(!D.s.length&&!(D.org&&D.org.sm)){idbGet('main').then(function(j){if(!j)return;try{var o=JSON.parse(j);if(o&&((o.s&&o.s.length)||(o.org&&o.org.sm))){D=o;save();render();info('তথ্য ফিরে পাওয়া গেছে','মূল সংরক্ষণে তথ্য পাওয়া যায়নি, কিন্তু নিরাপত্তা কপি থেকে সব তথ্য ফিরিয়ে আনা হয়েছে।')}}catch(e){}})}
+ else{save();idbAll().then(function(a){var l=0;a.forEach(function(r){if(r.k.indexOf('snap:')==0&&r.v.t>l)l=r.v.t});if(Date.now()-l>432e5)snap('স্বয়ংক্রিয় (দৈনিক)')})}}
+function fillStatus(){var el=document.getElementById('sst');if(!el)return;var ns=D.s.length,nb=0,ne=0;D.s.forEach(function(sc){nb+=sc.b.length;sc.b.forEach(function(b){ne+=b.e.length});(sc.irr||[]).forEach(function(g){ne+=g.e.length})});
+ function draw(k){el.innerHTML='মোট: সিডিউল '+bn(ns)+' • বই '+bn(nb)+' • এন্ট্রি '+bn(ne)+'<br>ব্রাউজার সংরক্ষণ: '+(PERSIST?'স্থায়ী ✓':'সাধারণ')+(SAVEERR?' <b style="color:var(--dng)">⚠ সেভ হচ্ছে না</b>':'')+'<br>শেষ ব্যাকআপ ফাইল: '+(D.lb?fdt(D.lb):'<b style="color:var(--dng)">এখনো নেওয়া হয়নি</b>')+'<br>স্বয়ংক্রিয় কপি: '+bn(k)+' টি'}
+ draw(0);idbAll().then(function(a){draw(a.filter(function(r){return r.k.indexOf('snap:')==0}).length)})}
+function openSnaps(){idbAll().then(function(a){var sn=a.filter(function(r){return r.k.indexOf('snap:')==0}).sort(function(x,y){return y.v.t-x.v.t});SNAPS=sn;
+ showM('<h3>🕘 স্বয়ংক্রিয় কপি</h3><div class="note" style="margin:10px 16px 0">অ্যাপ নিজে থেকে প্রতিদিন এবং কিছু মোছা/ইমপোর্টের আগে কপি রাখে (সর্বশেষ ২০টি)। যেকোনোটি চাপলে ওই অবস্থায় ফিরে যেতে পারবেন।</div>'+(sn.length?sn.map(function(r,i){var o={};try{o=JSON.parse(r.v.d)}catch(e){}var ns=(o.s||[]).length,ne=0;(o.s||[]).forEach(function(sc){sc.b.forEach(function(b){ne+=b.e.length})});return'<div class="card" style="margin:8px 16px;cursor:pointer" onclick="askSnap('+i+')"><b>'+fdt(r.v.t)+'</b><div class="note">'+esc(r.v.why)+' • সিডিউল '+bn(ns)+' • এন্ট্রি '+bn(ne)+'</div></div>'}).join(''):'<div class="note" style="margin:12px 16px">এখনো কোনো কপি নেই।</div>')+'<div class="row" style="margin:12px 16px 16px"><button class="sp" onclick="closeM()">বন্ধ করুন</button></div>')})}
+function askSnap(i){var r=SNAPS[i];if(!r)return;ask('এই কপির ('+fdt(r.v.t)+') অবস্থায় ফিরে যাবেন? বর্তমান সব তথ্য এই কপির তথ্য দিয়ে বদলে যাবে। বর্তমান অবস্থার একটি কপি আগে সংরক্ষিত হবে।',function(){snap('পুনরুদ্ধারের আগে').then(function(){try{D=JSON.parse(r.v.d)}catch(e){info('ব্যর্থ','কপিটি পড়া যায়নি।');return}V.s=null;V.b=null;V.irr=false;V.g=null;save();render();info('পুনরুদ্ধার সম্পন্ন','কপির তথ্য ফিরিয়ে আনা হয়েছে।')})},'পুনরুদ্ধার করবেন?','হ্যাঁ, ফিরে যান')}
+function afterImport(m){showM('<h3>✓ সম্পন্ন</h3><p style="margin:16px 16px 4px;font-size:16px">'+m+'</p><div class="note" style="margin:6px 16px">নিরাপত্তার জন্য এখন একটি ব্যাকআপ ফাইল সেভ করে রাখুন।</div><div id="err" class="note" style="color:var(--dng);min-height:20px;margin:4px 16px"></div><div class="row" style="margin-top:8px"><button class="p sp" onclick="quickBackup()">💾 ব্যাকআপ ফাইল সেভ করুন</button><button class="sp" onclick="closeM()">পরে</button></div>')}
+function quickBackup(){saveFile('backup-all-'+ymd()+'.json',new Blob([JSON.stringify({app:'bill-serial',v:1,date:new Date().toISOString(),org:D.org,s:pick('all','all')})],{type:'application/json'}))}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+function bn(s){return String(s).replace(/\d/g,function(d){return'০১২৩৪৫৬৭৮৯'[d]})}
+function en(s){return String(s).replace(/[০-৯]/g,function(d){return'০১২৩৪৫৬৭৮৯'.indexOf(d)})}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+var T=[['B','আবাসিক'],['C','বাণিজ্যিক'],['D1','দাতব্য'],['I','সেচ'],['D2','পানির পাম্প'],['CI','শিল্প'],['SL','রাস্তার বাতি']];
+var T2=T.concat([['DC','সংযোগ বিচ্ছিন্ন']]);
+function lab2(e){return e.nw?(e.mt?'মিটার '+bn(e.mt):'নতুন'):bn(e.acc)}
+function nl(e){return[e.pa?'সম্ভাব্য '+bn(e.pa):'নতুন',e.nm||'',e.mb||'','মিটার নং-'+(e.mt?bn(e.mt):''),'সীল নং-'+(e.sl?bn(e.sl):''),'রিডিং-'+(e.rd?bn(e.rd):'')].filter(Boolean)}
+function lab(e){return e.nw?nl(e)[0]:bn(e.acc)}
+function det(e){if(e.nw){var l=nl(e);if(!e.pa)l.shift();if(e.n)l.push(e.n);return l.join(' • ')}return e.n||''}
+function tgs(e){return e.nw?'':T2.filter(function(x){return e.t&&e.t[x[0]]&&x[0]!='B'}).map(function(x){return x[0]}).join(',')}
+function sub(e){if(e.nw)return nl(e).slice(1).join(' • ');var tg=T2.filter(function(x){return e.t[x[0]]&&x[0]!='B'}).map(function(x){return x[0]}).join(',');return tg+(tg&&e.n?' • ':'')+(e.n||'')}
+function dg(el,n){el.value=bn(en(el.value).replace(/\D/g,'').slice(0,n))}
+function S(){return D.s.find(function(x){return x.id==V.s})}
+function B(){var s=S();return s&&s.b.find(function(x){return x.id==V.b})}
+function go(s,b){V.s=s;V.b=b;V.irr=false;V.g=null;render()}
+function render(){hd();if(!(D.org&&D.org.sm&&D.org.zo)){openOrg();return}if(S()&&V.irr){renderIrr();return}
+ var a=document.getElementById('app'),h='',s=S(),b=B();
+ document.getElementById('crumb').textContent=!s?'সিডিউল তালিকা':!b?'সিডিউল: '+s.name:'সিডিউল: '+s.name+' › বই '+bn(b.no);
+ if(!s){
+  h+=warnHtml();h+='<div class="row" style="margin-bottom:10px"><h3 class="sp" style="margin:0">সিডিউল সমূহ</h3><button class="p" onclick="openM(\'s\')">+ নতুন সিডিউল</button></div><button class="p" style="width:100%;margin-bottom:10px" onclick="newReport()">📄 নতুন মিটার রিপোর্ট (PDF)</button><button style="width:100%;margin-bottom:10px" onclick="openBackup()">💾 ব্যাকআপ / এক্সেল ইমপোর্ট</button>';
+  if(!D.s.length)h+='<div class="card note">কোনো সিডিউল নেই। এলাকার নাম দিয়ে নতুন সিডিউল তৈরি করুন।</div>';
+  D.s.forEach(function(x){var n=0;x.b.forEach(function(y){n+=y.e.length});
+   h+='<div class="card row"><div class="sp" onclick="go(\''+x.id+'\')"><b style="font-size:18px">'+esc(x.name)+'</b><div class="note">বই '+bn(x.b.length)+' টি • হিসাব নং '+bn(n)+' টি</div></div><button class="s" onclick="openM(\'s\',\''+x.id+'\')">এডিট</button><button class="s d" onclick="delS(\''+x.id+'\')">মুছুন</button></div>'});
+ }else if(!b){
+  h+='<div class="top noprint"><button onclick="go()">← সিডিউল</button><button onclick="openBackup()">💾 ব্যাকআপ</button><span class="sp"></span><button onclick="newReport(\''+s.id+'\')">📄 এই সিডিউলের নতুন মিটার রিপোর্ট</button><button class="p" onclick="openM(\'b\')">+ নতুন বই নং</button></div>';
+  if(!s.b.length)h+='<div class="card note">কোনো বই নেই। নতুন বই নং যোগ করুন।</div>';
+  s.b.forEach(function(y){h+='<div class="card row"><div class="sp" onclick="go(\''+s.id+'\',\''+y.id+'\')"><b style="font-size:18px">বই নং '+bn(y.no)+'</b><div class="note">হিসাব নং '+bn(y.e.length)+' টি</div></div><button class="s" onclick="openM(\'b\',\''+y.id+'\')">এডিট</button><button class="s d" onclick="delB(\''+y.id+'\')">মুছুন</button></div>'});
+ h+=irrCard(s);
+ }else{
+  var cnt={};b.e.forEach(function(e){if(!e.nw)cnt[e.acc]=(cnt[e.acc]||0)+1});
+  h+='<div class="top tb noprint"><button onclick="go(\''+s.id+'\')">← বই তালিকা</button><button onclick="openBackup()">💾 ব্যাকআপ</button><button onclick="V.mode=V.mode==\'list\'?\'grid\':\'list\';render()">'+(V.mode=='list'?'সিরিয়াল ছক':'এন্ট্রি তালিকা')+'</button><button class="p" onclick="savePdf()">📄 PDF</button></div>';
+  h+='<div class="card row"><div class="sp"><b style="font-size:18px">'+bn(b.no)+' নং বইয়ের বিল বিতরণের সিরিয়াল</b><div class="note">মোট '+bn(b.e.length)+' টি</div></div><button class="p noprint" onclick="openE('+b.e.length+')">+ শেষে যোগ</button></div>';
+  if(V.mode=='grid'){
+   h+='<div class="grid">';b.e.forEach(function(e){var t=sub(e);
+    h+='<div class="cell'+(e.nw?' nw':'')+'"><b>'+lab(e)+'</b>'+(e.nw?(t?'<small>'+esc(t)+'</small>':''):((tgs(e)?'<small><b>'+esc(tgs(e))+'</b></small>':'')+(e.n?'<small>'+esc(e.n)+'</small>':'')))+'</div>'});h+='</div>';
+  }else{
+   h+='<div class="card">';
+   if(!b.e.length)h+='<div class="note">এখনো কোনো হিসাব নং নেই। "শেষে যোগ" চাপুন।</div>';
+   b.e.forEach(function(e,i){var tg=(e.nw?'<span class="tag" style="border-color:var(--dng);color:var(--dng)">New</span>':'')+T2.filter(function(x){return e.t[x[0]]}).map(function(x){return'<span class="tag">'+x[0]+'</span>'}).join('');
+    h+='<div class="ent'+(cnt[e.acc]>1?' dup':'')+'"><div class="no">'+bn(i+1)+'</div><div class="sp"><span class="acc">'+lab2(e)+'</span>'+tg+(e.nw?'<label class="aco"><input type="checkbox" onchange="acOk(\''+e.id+'\')"> AC OK</label>':'')+(det(e)?'<div class="note">'+esc(det(e))+'</div>':'')+(cnt[e.acc]>1?'<div class="note" style="color:var(--dng)">⚠ এই হিসাব নং আরও আছে</div>':'')+'</div>'+
+    '<div class="ins noprint"><button class="s" onclick="openE('+i+')">↑ আগে</button><button class="s" onclick="openE('+(i+1)+')">↓ পরে</button></div>'+
+    '<div class="ins noprint"><button class="s" onclick="openE('+i+',\''+e.id+'\')">এডিট</button><button class="s d" onclick="delE(\''+e.id+'\')">মুছুন</button></div></div>'});
+   h+='</div>';
+  }
+ }
+ a.innerHTML=h;
+}
+function openM(k,id){M={k:k,id:id};var v='';
+ if(id){v=k=='s'?D.s.find(function(x){return x.id==id}).name:S().b.find(function(x){return x.id==id}).no}
+ showM('<h3 style="margin:0 0 6px">'+(k=='s'?(id?'সিডিউল এডিট':'নতুন সিডিউল'):(id?'বই নং এডিট':'নতুন বই নং'))+'</h3><label>'+(k=='s'?'এলাকার নাম':'বই নং')+'</label><input id="f1"'+(k=='b'?' inputmode="numeric" maxlength="3" oninput="dg(this,3)"':'')+' value="'+esc(v)+'"><div id="err" class="note" style="color:var(--dng);min-height:20px"></div>'+btns('saveM()'))}
+function saveM(){var v=document.getElementById('f1').value.trim();if(!v)return;
+ if(M.k=='s'){if(M.id)D.s.find(function(x){return x.id==M.id}).name=v;else D.s.push({id:uid(),name:v,b:[]})}
+ else{v=en(v);if(!/^\d{3}$/.test(v)){document.getElementById('err').textContent='বই নং ঠিক ৩ সংখ্যার হতে হবে';return}var s=S();if(M.id)s.b.find(function(x){return x.id==M.id}).no=v;else s.b.push({id:uid(),no:v,e:[]})}
+ save();closeM();render()}
+function dupAcc(acc,ex){var bk=B();if(!bk)return null;for(var d=0;d<bk.e.length;d++){var e=bk.e[d];if(e.id!=ex&&((!e.nw&&e.acc==acc)||(e.nw&&e.pa==acc)))return d+1}return null}
+function pm(m){document.getElementById('paMsg').textContent=m}
+function chkPa(){var v=en(document.getElementById('pa').value);if(!v){pm('');return}if(v.length<4){pm('৪ সংখ্যা দিতে হবে (এখন '+bn(v.length)+' সংখ্যা)');return}var d=dupAcc(v,M&&M.id);pm(d?'⚠ এই হিসাব নং ইতিমধ্যে এই বইয়ের ক্রমিক '+bn(d)+'-এ আছে':'')}
+function info(t,m){showM('<h3>'+t+'</h3><p style="margin:16px 16px 4px;font-size:16px">'+m+'</p><div class="row" style="margin-top:14px!important"><button class="p sp" onclick="closeM()">ঠিক আছে</button></div>')}
+function acOk(id){var b=B(),e=b.e.find(function(x){return x.id==id});if(!e)return;
+ if(!/^\d{4}$/.test(e.pa||'')){info('সম্ভাব্য হিসাব নং নেই','AC OK দিতে আগে এডিট করে ৪ সংখ্যার সম্ভাব্য হিসাব নং দিন।');render();return}
+ var d=dupAcc(e.pa,e.id);if(d){info('ডুপ্লিকেট হিসাব নং','এই হিসাব নং ইতিমধ্যে এই বইয়ের ক্রমিক '+bn(d)+'-এ আছে।');render();return}
+ e.nw=false;e.acc=e.pa;e.ok=true;save();render()}
+function openE(i,id){var b=B(),e=(id&&b.e.find(function(x){return x.id==id}))||{};M={k:'e',i:i,id:id};
+ var t=e.t||{B:true},cur=(T.filter(function(x){return t[x[0]]})[0]||T[0])[0];
+ function f(k,l,m,ph){return'<label>'+l+'</label><input id="'+k+'"'+(m?' inputmode="numeric" oninput="dg(this,'+m+')'+(k=='pa'?';chkPa()':'')+'"':'')+(ph?' placeholder="'+ph+'"':'')+' value="'+esc(m&&e[k]?bn(e[k]):(e[k]||''))+'">'}
+ function two(a,c){return'<div class="row" style="margin:0;align-items:flex-start"><div class="sp" style="min-width:0">'+a+'</div><div class="sp" style="min-width:0">'+c+'</div></div>'}
+ showM('<h3>'+(id?'হিসাব নং এডিট':'নতুন হিসাব নং')+'</h3>'+
+ '<div class="row" style="flex-wrap:nowrap;align-items:flex-end;margin-top:6px"><div style="width:84px"><label>ক্রমিক নং</label><input disabled value="'+bn(i+1)+'"></div><div style="width:84px"><label>বই নং</label><input disabled value="'+bn(b.no)+'"></div><div class="chk" style="margin-left:auto;flex-shrink:0"><label><input type="checkbox" id="nw"'+(e.nw?' checked':'')+' onchange="togNew()"> নতুন মিটার</label></div></div>'+
+ '<label>ট্যারিফ (যেকোনো একটি)</label><div class="chk tp">'+[T.slice(0,4),T.slice(4)].map(function(r){return'<div class="tr">'+r.map(function(x){return'<label><input type="radio" name="ty" value="'+x[0]+'"'+(cur==x[0]?' checked':'')+'> '+x[0]+' <small>'+x[1]+'</small></label>'}).join('')+'</div>'}).join('')+'</div>'+
+ '<div id="reg"><label>হিসাব নং (৪ সংখ্যা)</label><div class="row" style="flex-wrap:nowrap;margin:0"><input id="f1" inputmode="numeric" maxlength="4" oninput="dg(this,4)" style="flex:1;min-width:0" value="'+esc(e.acc?bn(e.acc):'')+'" placeholder="যেমন ১৬৯১"><div class="chk"><label><input type="checkbox" id="t_DC"'+(t.DC?' checked':'')+'> DC <small>সংযোগ বিচ্ছিন্ন</small></label></div></div></div>'+
+ '<div id="nwf">'+f('pa','সম্ভাব্য হিসাব নং',4,'৪ সংখ্যা (ঐচ্ছিক)')+'<div id="paMsg" class="note" style="color:var(--dng);min-height:18px;margin-top:4px"></div>'+f('nm','নাম')+two(f('mt','মিটার নং'),f('sl','সীল নং'))+two(f('rd','বর্তমান রিডিং'),f('mb','মোবাইল নং (১১ সংখ্যা)',11))+'</div>'+
+ '<label>মন্তব্য</label><input id="f2" value="'+esc(e.n||'')+'" placeholder="যেমন: রাস্তার ওপর পাশ / অপর পাশ / ফেরত / শেষ">'+
+ '<div id="err" class="note" style="color:var(--dng);min-height:20px;margin-top:6px"></div>'+
+ btns('saveE()',!id?'সেভ ও পরেরটি':''));togNew()}
+function togNew(){var n=document.getElementById('nw').checked;document.getElementById('reg').style.display=n?'none':'';document.getElementById('nwf').style.display=n?'':'none'}
+function saveE(more){var b=B(),g=function(k){return document.getElementById(k).value.trim()},err=document.getElementById('err'),nw=document.getElementById('nw').checked,o={nw:nw,n:g('f2')};
+ ['pa','nm','sl','mb','rd','mt'].forEach(function(k){o[k]=k=='nm'?g(k):en(g(k))});
+ var t={},rd=document.querySelector('input[name=ty]:checked');if(rd)t[rd.value]=true;
+ if(nw){
+  if(o.pa){if(!/^\d{4}$/.test(o.pa)){pm('সম্ভাব্য হিসাব নং ঠিক ৪ সংখ্যার হতে হবে');return}var d=dupAcc(o.pa,M.id);if(d){pm('⚠ এই হিসাব নং ইতিমধ্যে এই বইয়ের ক্রমিক '+bn(d)+'-এ আছে');return}}
+  if(o.mb&&!/^\d{11}$/.test(o.mb)){err.textContent='মোবাইল নং ঠিক ১১ সংখ্যার হতে হবে';return}
+  if(!o.nm&&!o.mt){err.textContent='নাম অথবা মিটার নং দিন';return}
+  o.acc='';o.t=t}
+ else{var acc=en(g('f1'));if(!/^\d{4}$/.test(acc)){err.textContent='হিসাব নং ঠিক ৪ সংখ্যার হতে হবে';document.getElementById('f1').focus();return}
+  if(document.getElementById('t_DC').checked)t.DC=true;o.acc=acc;o.t=t}
+ if(M.id){Object.assign(b.e.find(function(x){return x.id==M.id}),o)}else{o.id=uid();b.e.splice(M.i,0,o)}
+ save();
+ if(more&&!M.id){render();openE(M.i+1)}else{closeM();render()}}
+function btns(f,extra){return'<div class="row" style="margin-top:14px"><button class="p sp" onclick="'+f+'">সেভ</button>'+(extra?'<button class="sp" onclick="saveE(true)">'+extra+'</button>':'')+'<button onclick="closeM()">বাতিল</button></div>'}
+function showM(h){document.getElementById('mod').innerHTML='<div class="modal"><div class="box">'+h+'</div></div>';var f=document.getElementById('f1');if(f)setTimeout(function(){f.focus()},50)}
+var CB=null;
+function ask(msg,fn,t,bt){CB=fn;showM('<h3 style="background:var(--dng);color:#fff">'+(t||'মুছে ফেলবেন?')+'</h3><p style="margin:16px 16px 4px;font-size:16px">'+msg+'</p><div class="row" style="margin-top:14px!important"><button class="sp d" style="font-weight:700" onclick="var f=CB;closeM();if(f)f()">'+(bt||'হ্যাঁ, মুছুন')+'</button><button class="sp" onclick="closeM()">না</button></div>')}
+function closeM(){document.getElementById('mod').innerHTML='';M=null}
+function delS(id){ask('এই সিডিউল ও এর সব বই মুছে যাবে। নিশ্চিত?',function(){snap('সিডিউল মোছার আগে');D.s=D.s.filter(function(x){return x.id!=id});save();render()})}
+function delB(id){ask('এই বই ও এর সব হিসাব নং মুছে যাবে। নিশ্চিত?',function(){snap('বই মোছার আগে');var s=S();s.b=s.b.filter(function(x){return x.id!=id});save();render()})}
+function delE(id){ask('এই হিসাব নংটি মুছবেন?',function(){snap('এন্ট্রি মোছার আগে');var b=B(),ix=b.e.findIndex(function(x){return x.id==id}),ent=b.e[ix];if(!ent)return;b.e.splice(ix,1);save();render();toast('এন্ট্রি মুছে ফেলা হয়েছে',function(){b.e.splice(Math.min(ix,b.e.length),0,ent);save();render()})})}
+function pdfFrom(jp,W,H){var PW=W>H?842:595,PH=W>H?595:842,parts=[],len=0,offs=[],n=jp.length,N=2+3*n;function add(u){if(typeof u=='string')u=new TextEncoder().encode(u);parts.push(u);len+=u.length}
+function obj(id,f){offs[id]=len;add(id+' 0 obj\n');f();add('\nendobj\n')}
+add('%PDF-1.4\n');obj(1,function(){add('<</Type/Catalog/Pages 2 0 R>>')});
+obj(2,function(){var k=[];for(var i=0;i<n;i++)k.push((3+3*i)+' 0 R');add('<</Type/Pages/Kids['+k.join(' ')+']/Count '+n+'>>')});
+for(var i=0;i<n;i++){(function(i){var bin=atob(jp[i].split(',')[1]),u=new Uint8Array(bin.length);for(var j=0;j<bin.length;j++)u[j]=bin.charCodeAt(j);
+obj(3+3*i,function(){add('<</Type/Page/Parent 2 0 R/MediaBox[0 0 '+PW+' '+PH+']/Resources<</XObject<</Im0 '+(5+3*i)+' 0 R>>>>/Contents '+(4+3*i)+' 0 R>>')});
+var cs='q '+PW+' 0 0 '+PH+' 0 0 cm /Im0 Do Q';obj(4+3*i,function(){add('<</Length '+cs.length+'>>\nstream\n'+cs+'\nendstream')});
+obj(5+3*i,function(){add('<</Type/XObject/Subtype/Image/Width '+W+'/Height '+H+'/ColorSpace/DeviceRGB/BitsPerComponent 8/Filter/DCTDecode/Length '+u.length+'>>\nstream\n');add(u);add('\nendstream')})})(i)}
+var xo=len;add('xref\n0 '+(N+1)+'\n0000000000 65535 f \n');for(var i=1;i<=N;i++)add(String(offs[i]).padStart(10,'0')+' 00000 n \n');
+add('trailer\n<</Size '+(N+1)+'/Root 1 0 R>>\nstartxref\n'+xo+'\n%%EOF');return new Blob(parts,{type:'application/pdf'})}
+async function savePdf(){var b=B();if(!b)return;var dl=null;try{dl=await claude.use('downloads')}catch(e){}
+ if(!dl){makePdf();return}
+ var W=1240,H=1754,NC=7,NR=30,per=NC*NR,pages=Math.max(1,Math.ceil(b.e.length/per)),jp=[],F='"Noto Sans Bengali",Kalpurush,sans-serif';
+ for(var p=0;p<pages;p++){var c=document.createElement('canvas');c.width=W;c.height=H;var x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,W,H);x.fillStyle='#000';
+  orgHd(x,W,F);x.font='bold 30px '+F;x.textAlign='left';x.fillText(bn(b.no)+' নং বইয়ের বিল বিতরণের সিরিয়াল',150,142);x.textAlign='right';x.fillText(bn(b.e.length),W-50,142);
+  var cw=(W-200)/NC,rh=(H-270)/NR,sl=b.e.slice(p*per,(p+1)*per);x.strokeStyle='#000';x.lineWidth=2;x.textAlign='center';
+  var wr=function(t,mw){x.font='13px '+F;var o=[],ws=String(t).split(/\s+/).filter(Boolean),ln='';ws.forEach(function(w){var tr=ln?ln+' '+w:w;if(x.measureText(tr).width<=mw)ln=tr;else{if(ln)o.push(ln);ln=w}});if(ln)o.push(ln);if(o.length>2)o=[o[0],o.slice(1).join(' ')];return o};
+  for(var r=0;r<NR;r++)for(var q=0;q<NC;q++){var X=150+q*cw,Y=175+r*rh,e=sl[q*NR+r];x.strokeRect(X,Y,cw,rh);if(!e)continue;
+   if(e.nw){var L=nl(e);x.font='bold 13px '+F;x.fillText(L[0],X+cw/2,Y+11,cw-6);x.font='11px '+F;x.fillText([e.nm,e.mb].filter(Boolean).join(' ')||'-',X+cw/2,Y+23,cw-6);x.fillText('মিটার-'+(e.mt?bn(e.mt):'')+' সীল-'+(e.sl?bn(e.sl):''),X+cw/2,Y+35,cw-6);x.fillText('রিডিং-'+(e.rd?bn(e.rd):''),X+cw/2,Y+47,cw-6);continue}
+   var tf=tgs(e),nt=e.n||'';x.font='bold 28px '+F;x.fillText(lab(e),X+cw/2,(tf||nt)?Y+23:Y+rh*0.64,cw-8);
+   if(tf){x.font='bold 14px '+F;x.fillText(tf,X+cw/2,Y+36,cw-8);if(nt){x.font='13px '+F;x.fillText(nt,X+cw/2,Y+48,cw-8)}}
+   else if(nt){var ls=wr(nt,cw-14);x.font='13px '+F;ls.forEach(function(l,k){x.fillText(l,X+cw/2,Y+37+k*12,cw-8)})}}
+  x.font='bold 32px '+F;x.fillText(bn(p+1),W/2,H-60);jp.push(c.toDataURL('image/jpeg',0.92))}
+ try{await dl.save({filename:'book-'+en(b.no)+'-serial.pdf',data:pdfFrom(jp,W,H)})}catch(e){if(e&&e.code!='declined')info('PDF সেভ হয়নি','আবার চেষ্টা করুন।')}}
+async function newReport(sid){
+ var rows=[],tot=0;
+ (sid?D.s.filter(function(z){return z.id==sid}):D.s).forEach(function(sc){var bl=[];sc.b.forEach(function(bk){var l=[];bk.e.forEach(function(e,i){if(e.nw)l.push({e:e,i:i})});if(l.length){bl.push({bk:bk,l:l});tot+=l.length}});if(bl.length)rows.push({sc:sc,bl:bl})});
+ if(!tot){info('নতুন মিটার নেই','এখনো কোনো নতুন মিটার এন্ট্রি করা হয়নি।');return}
+ var dl=null;try{dl=await claude.use('downloads')}catch(e){}
+ if(!dl){info('ডাউনলোড চালু নেই','এই পেজে ফাইল ডাউনলোড করা যাচ্ছে না।');return}
+ var W=1754,H=1240,F='"Noto Sans Bengali",Kalpurush,sans-serif',rh=40,jp=[],c=null,x,y,pg=0,ctx='',
+ cols=[['ক্রমিক',80],['সম্ভাব্য হিসাব নং',170],['নাম',260],['মোবাইল',170],['মিটার নং',200],['সীল নং',140],['রিডিং',100],['ট্যারিফ',80],['মন্তব্য',354]],
+ d=new Date(),ds=bn(d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear());
+ function row(v,bold,fill){var X=150;if(fill){x.fillStyle=fill;x.fillRect(150,y,1554,rh);x.fillStyle='#000'}x.font=(bold?'bold ':'')+'20px '+F;x.textAlign='left';cols.forEach(function(cl,k){x.strokeRect(X,y,cl[1],rh);if(v[k])x.fillText(v[k],X+8,y+27,cl[1]-14);X+=cl[1]});y+=rh}
+ function head(t){x.fillStyle='#000';x.font='bold 24px '+F;x.textAlign='left';x.fillText(t,150,y+30,1554);y+=46}
+ function colhead(){row(cols.map(function(cl){return cl[0]}),true,'#d9d9d9')}
+ function page(){if(c)jp.push(c.toDataURL('image/jpeg',0.92));c=document.createElement('canvas');c.width=W;c.height=H;x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,W,H);x.fillStyle='#000';x.strokeStyle='#000';x.lineWidth=1.5;pg++;
+  orgHd(x,W,F);x.font='bold 30px '+F;x.textAlign='left';x.fillText('নতুন মিটার রিপোর্ট'+(sid&&rows[0]?' — সিডিউল: '+rows[0].sc.name:''),150,134);x.font='20px '+F;x.textAlign='right';x.fillText('তারিখ: '+ds+' • পাতা '+bn(pg),W-50,134);x.textAlign='left';y=155;
+  if(ctx){head(ctx+' (চলমান)');colhead()}}
+ page();
+ rows.forEach(function(g){g.bl.forEach(function(o){ctx='';if(y+46+rh*3>H-70)page();
+   ctx='সিডিউল: '+g.sc.name+'  •  বই নং '+bn(o.bk.no)+'  •  নতুন মিটার '+bn(o.l.length)+' টি';
+   head(ctx);colhead();
+   o.l.forEach(function(it){if(y+rh>H-70)page();var e=it.e,tf=(T.filter(function(z){return e.t&&e.t[z[0]]})[0]||['',''])[0];
+    row([bn(it.i+1),e.pa?bn(e.pa):'',e.nm||'',e.mb||'',e.mt?bn(e.mt):'',e.sl?bn(e.sl):'',e.rd?bn(e.rd):'',tf,e.n||''])});
+   y+=24})});
+ ctx='';if(y+46>H-70)page();head('সর্বমোট নতুন মিটার: '+bn(tot)+' টি');jp.push(c.toDataURL('image/jpeg',0.92));
+ try{await dl.save({filename:'new-meters-report.pdf',data:pdfFrom(jp,W,H)})}catch(e){}}
+function icount(s){return(s.irr||[]).reduce(function(n,g){return n+g.e.length},0)}
+function irrCard(s){return'<div class="card row" style="border-color:var(--pri)" onclick="openIrr()"><div class="sp"><b style="font-size:18px">💧 সেচ বিলের তথ্য</b><div class="note">সেচ গ্রাহক '+bn(icount(s))+' টি</div></div><span style="color:var(--pri);font-size:22px">›</span></div>'}
+function syncIrr(s){if(!s.irr)s.irr=[];s.b.forEach(function(bk){if(!s.irr.some(function(g){return g.bk==bk.no}))s.irr.push({id:uid(),bk:bk.no,e:[]})});save()}
+function openIrr(){V.irr=true;V.g=null;render()}
+function renderIrr(){var s=S(),h='';syncIrr(s);var g=V.g&&s.irr.find(function(z){return z.id==V.g});
+ document.getElementById('crumb').textContent='সিডিউল: '+s.name+' › সেচ বিলের তথ্য'+(g?' › বই '+bn(g.bk):'');
+ if(!g){
+  h+='<div class="top noprint"><button onclick="go(\''+s.id+'\')">← বই তালিকা</button><span class="sp"></span><button class="p" onclick="openG()">+ নতুন গ্রুপ</button></div>';
+  h+='<div class="card row"><div class="sp"><b>📄 সেচ বিল উত্তোলনের সিরিয়াল</b><div class="note">অফিসে বিল তোলার জন্য • সেচ বই ও হিসাব নং অনুযায়ী</div></div><button class="p" onclick="collectPdf()">PDF</button></div><div class="card row"><div class="sp"><b>📄 সেচ বিল বিতরণের সিরিয়াল</b><div class="note">বিল বিতরণের জন্য • বই অনুযায়ী ক্রম</div></div><button class="p" onclick="irrPdf()">PDF</button></div><h3 style="margin:14px 2px 8px;font-size:16px">সেচ বিল বিতরণের সিরিয়াল — বই অনুযায়ী গ্রুপ</h3>';
+  s.irr.forEach(function(q){var isb=s.b.some(function(bk){return bk.no==q.bk});h+='<div class="card row"><div class="sp" onclick="V.g=\''+q.id+'\';render()"><b style="font-size:18px">বই নং '+bn(q.bk)+'</b><div class="note">সেচ গ্রাহক '+bn(q.e.length)+' টি</div></div>'+(isb?'':'<button class="s d" onclick="delG(\''+q.id+'\')">মুছুন</button>')+'</div>'})
+ }else{
+  var cnt={};g.e.forEach(function(e){var k=e.ib+'/'+e.acc;cnt[k]=(cnt[k]||0)+1});
+  h+='<div class="top noprint"><button onclick="V.g=null;render()">← গ্রুপ তালিকা</button><span class="sp"></span><button onclick="irrPdf(\''+g.id+'\')">📄 PDF</button></div>';
+  h+='<div class="card row"><div class="sp"><b style="font-size:18px">বই নং '+bn(g.bk)+' — সেচ বিল বিতরণের সিরিয়াল</b><div class="note">মোট '+bn(g.e.length)+' টি</div></div><button class="p" onclick="openI('+g.e.length+')">+ শেষে যোগ</button></div><div class="card">';
+  if(!g.e.length)h+='<div class="note">এখনো কোনো এন্ট্রি নেই। "শেষে যোগ" চাপুন।</div>';
+  g.e.forEach(function(e,i){var k=e.ib+'/'+e.acc;h+='<div class="ent'+(cnt[k]>1?' dup':'')+'"><div class="no">'+bn(i+1)+'</div><div class="sp"><span class="acc">'+bn(e.ib)+'/'+bn(e.acc)+'</span>'+(e.same?'<div class="note mrg">🔗 '+esc(effNote(g,i))+'</div>':(e.n?'<div class="note">'+esc(e.n)+'</div>':''))+(cnt[k]>1?'<div class="note" style="color:var(--dng)">⚠ ডুপ্লিকেট</div>':'')+'</div><div class="ins noprint"><button class="s" onclick="openI('+i+')">↑ আগে</button><button class="s" onclick="openI('+(i+1)+')">↓ পরে</button></div><div class="ins noprint"><button class="s" onclick="openI('+i+',\''+e.id+'\')">এডিট</button><button class="s d" onclick="delI(\''+e.id+'\')">মুছুন</button></div></div>'});
+  h+='</div>'}
+ document.getElementById('app').innerHTML=h}
+function curG(){var s=S();return s.irr.find(function(z){return z.id==V.g})}
+function openG(){M={k:'g'};showM('<h3>নতুন গ্রুপ</h3><label>বই নং (৩ সংখ্যা)</label><input id="f1" inputmode="numeric" maxlength="3" oninput="dg(this,3)"><div id="err" class="note" style="color:var(--dng);min-height:20px;margin-top:6px"></div><div class="row" style="margin-top:14px"><button class="p sp" onclick="saveG()">সেভ</button><button onclick="closeM()">বাতিল</button></div>')}
+function saveG(){var v=en(document.getElementById('f1').value.trim()),s=S(),er=document.getElementById('err');if(!/^\d{3}$/.test(v)){er.textContent='বই নং ঠিক ৩ সংখ্যার হতে হবে';return}if(s.irr.some(function(g){return g.bk==v})){er.textContent='এই বই নংয়ের গ্রুপ আগেই আছে';return}s.irr.push({id:uid(),bk:v,e:[]});save();closeM();render()}
+function delG(id){ask('এই গ্রুপ ও এর সব সেচ এন্ট্রি মুছে যাবে। নিশ্চিত?',function(){snap('সেচ গ্রুপ মোছার আগে');var s=S();s.irr=s.irr.filter(function(g){return g.id!=id});save();render()})}
+function delI(id){ask('এই সেচ এন্ট্রিটি মুছবেন?',function(){snap('এন্ট্রি মোছার আগে');var b=curG(),ix=b.e.findIndex(function(x){return x.id==id}),ent=b.e[ix];if(!ent)return;b.e.splice(ix,1);save();render();toast('এন্ট্রি মুছে ফেলা হয়েছে',function(){b.e.splice(Math.min(ix,b.e.length),0,ent);save();render()})})}
+function openI(i,id){var g=curG(),e=(id&&g.e.find(function(x){return x.id==id}))||{};M={k:'i',i:i,id:id};var pv=g.e[i-1],ib=e.ib||(pv?pv.ib:'');
+ showM('<h3>'+(id?'সেচ এন্ট্রি এডিট':'নতুন সেচ এন্ট্রি')+'</h3><div class="row" style="flex-wrap:nowrap;margin-top:6px"><div style="width:84px"><label>ক্রমিক নং</label><input disabled value="'+bn(i+1)+'"></div><div style="width:84px"><label>বই নং</label><input disabled value="'+bn(g.bk)+'"></div></div>'+
+ '<div class="row" style="flex-wrap:nowrap;margin:0;align-items:flex-start"><div style="width:100px"><label>সেচ বই নং</label><input id="ib" inputmode="numeric" maxlength="3" oninput="dg(this,3)" value="'+esc(ib?bn(ib):'')+'" placeholder="৪০২"></div><div class="sp" style="min-width:0"><label>হিসাব নং (৪ সংখ্যা)</label><input id="ia" inputmode="numeric" maxlength="4" oninput="dg(this,4)" value="'+esc(e.acc?bn(e.acc):'')+'" placeholder="৪৪৬০"></div></div>'+
+ (i>0?'<div class="chk" style="margin-top:10px"><label><input type="checkbox" id="same"'+(e.same?' checked':'')+' onchange="sameTog(this)"> উপরের সারির সাথে একই মন্তব্য</label></div>':'')+
+ '<label>মন্তব্য (অবস্থান)</label><input id="in" value="'+esc(e.same?effNote(g,i-1):(e.n||''))+'"'+(e.same?' disabled':'')+' placeholder="যেমন: খালের পরে / স্কুলের পাশে">'+
+ '<div id="err" class="note" style="color:var(--dng);min-height:20px;margin-top:6px"></div>'+
+ '<div class="row" style="margin-top:14px"><button class="p sp" onclick="saveI()">সেভ</button>'+(id?'':'<button class="sp" onclick="saveI(true)">সেভ ও পরেরটি</button>')+'<button onclick="closeM()">বাতিল</button></div>');
+ setTimeout(function(){var q=document.getElementById(ib?'ia':'ib');if(q)q.focus()},60)}
+function saveI(more){var g=curG(),v=function(k){return document.getElementById(k).value.trim()},er=document.getElementById('err'),ib=en(v('ib')),ac=en(v('ia')),sm=document.getElementById('same'),same=!!(sm&&sm.checked),n=same?'':v('in');
+ if(!/^\d{3}$/.test(ib)){er.textContent='সেচ বই নং ঠিক ৩ সংখ্যার হতে হবে';return}
+ if(!/^\d{4}$/.test(ac)){er.textContent='হিসাব নং ঠিক ৪ সংখ্যার হতে হবে';return}
+ var dp=g.e.findIndex(function(x){return x.id!=M.id&&x.ib==ib&&x.acc==ac});if(dp>=0){er.textContent='⚠ এই সেচ হিসাব নং এই বইয়ের ক্রমিক '+bn(dp+1)+'-এ আছে';return}
+ var o={ib:ib,acc:ac,n:n,same:same};
+ if(M.id)Object.assign(g.e.find(function(x){return x.id==M.id}),o);else{o.id=uid();g.e.splice(M.i,0,o)}
+ save();if(more&&!M.id){render();openI(M.i+1)}else{closeM();render()}}
+async function irrPdf(gid){var s=S(),gs=s.irr.filter(function(g){return g.e.length&&(!gid||g.id==gid)});
+ if(!gs.length){info('সেচ এন্ট্রি নেই','এখনো কোনো সেচ বিলের এন্ট্রি করা হয়নি।');return}
+ var dl=null;try{dl=await claude.use('downloads')}catch(e){}
+ if(!dl){info('ডাউনলোড চালু নেই','এই পেজে ফাইল ডাউনলোড করা যাচ্ছে না।');return}
+ var W=1240,H=1754,F='"Noto Sans Bengali",Kalpurush,sans-serif',CX=[150,685],CW=505,AW=160,NW=CW-AW,TOP=175,BOT=H-60,HH=42,LH=24,jp=[],c=null,x,y=TOP,col=0,pg=0,d=new Date(),ds=bn(d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear());
+ function page(){if(c)jp.push(c.toDataURL('image/jpeg',0.92));c=document.createElement('canvas');c.width=W;c.height=H;x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,W,H);x.fillStyle='#000';x.strokeStyle='#000';x.lineWidth=1.5;pg++;col=0;y=TOP;
+  orgHd(x,W,F);x.font='bold 28px '+F;x.textAlign='left';x.fillText('সেচ বিল বিতরণের সিরিয়াল — সিডিউল: '+s.name,150,138);x.font='20px '+F;x.textAlign='right';x.fillText('তারিখ: '+ds+' • পাতা '+bn(pg),W-50,138);x.textAlign='left'}
+ function next(){if(col==0){col=1;y=TOP}else page()}
+ function wrap(t,mw){x.font='20px '+F;var out=[],ws=String(t).split(/\s+/).filter(Boolean),ln='';ws.forEach(function(w){var tr=ln?ln+' '+w:w;if(x.measureText(tr).width<=mw){ln=tr;return}if(ln)out.push(ln);ln=w;while(x.measureText(ln).width>mw&&ln.length>1){var k=ln.length;while(k>1&&x.measureText(ln.slice(0,k)).width>mw)k--;out.push(ln.slice(0,k));ln=ln.slice(k)}});if(ln)out.push(ln);return out}
+ function hdr(t){var X=CX[col];x.strokeRect(X,y,CW,HH);x.font='bold 26px '+F;x.textAlign='center';x.fillText(t,X+CW/2,y+30,CW-10);x.textAlign='left';y+=HH}
+ function seg(sg){var X=CX[col],h=sg.rh*sg.rows.length;sg.rows.forEach(function(r,k){var Y=y+k*sg.rh;x.strokeRect(X,Y,AW,sg.rh);x.font='bold 20px '+F;x.textAlign='center';x.fillText(bn(r.ib)+'/'+bn(r.acc),X+AW/2,Y+sg.rh/2+7,AW-10)});
+  x.strokeRect(X+AW,y,NW,h);x.font='20px '+F;var sy=y+(h-sg.lines.length*LH)/2+18;sg.lines.forEach(function(l,k){x.fillText(l,X+AW+NW/2,sy+k*LH,NW-12)});x.textAlign='left';y+=h}
+ page();
+ gs.forEach(function(g){var sgs=[];g.e.forEach(function(e){if(e.same&&sgs.length)sgs[sgs.length-1].rows.push(e);else sgs.push({rows:[e],note:e.n||''})});
+  sgs.forEach(function(sg){sg.lines=wrap(sg.note,NW-16);sg.rh=Math.max(36,Math.ceil((Math.max(1,sg.lines.length)*LH+12)/sg.rows.length))});
+  if(y+HH+sgs[0].rh*sgs[0].rows.length>BOT)next();
+  hdr(bn(g.bk));
+  sgs.forEach(function(sg){if(y+sg.rh*sg.rows.length>BOT){next();hdr(bn(g.bk)+' (চলমান)')}seg(sg)});
+  y+=30});
+ jp.push(c.toDataURL('image/jpeg',0.92));
+ try{await dl.save({filename:'sech-bill-serial.pdf',data:pdfFrom(jp,W,H)})}catch(e){}}
+function effNote(g,i){while(i>0&&g.e[i]&&g.e[i].same)i--;return(g.e[i]&&g.e[i].n)||''}
+function sameTog(cb){var inp=document.getElementById('in');if(cb.checked){inp.dataset.own=inp.value;inp.value=effNote(curG(),M.i-1);inp.disabled=true}else{inp.value=inp.dataset.own||'';inp.disabled=false}}
+async function collectPdf(){var s=S(),all=[];(s.irr||[]).forEach(function(g){g.e.forEach(function(e){all.push({ib:e.ib,acc:e.acc,bk:g.bk})})});
+ if(!all.length){info('সেচ এন্ট্রি নেই','এখনো কোনো সেচ বিলের এন্ট্রি করা হয়নি।');return}
+ all.sort(function(a,b){return a.ib<b.ib?-1:a.ib>b.ib?1:(a.acc<b.acc?-1:a.acc>b.acc?1:0)});
+ var bl=[];all.forEach(function(r){var l=bl[bl.length-1];if(l&&l.ib==r.ib)l.rows.push(r);else bl.push({ib:r.ib,rows:[r]})});
+ var dl=null;try{dl=await claude.use('downloads')}catch(e){}
+ if(!dl){info('ডাউনলোড চালু নেই','এই পেজে ফাইল ডাউনলোড করা যাচ্ছে না।');return}
+ var W=1240,H=1754,F='"Noto Sans Bengali",Kalpurush,sans-serif',CW=326,CX=[150,506,862],AW=150,TOP=175,BOT=H-60,RH=36,jp=[],c=null,x,y=TOP,col=0,pg=0,d=new Date(),ds=bn(d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear());
+ function page(){if(c)jp.push(c.toDataURL('image/jpeg',0.92));c=document.createElement('canvas');c.width=W;c.height=H;x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,W,H);x.fillStyle='#000';x.strokeStyle='#000';x.lineWidth=1.5;pg++;col=0;y=TOP;
+  orgHd(x,W,F);x.font='bold 28px '+F;x.textAlign='left';x.fillText('সেচ বিল উত্তোলনের সিরিয়াল — সিডিউল: '+s.name,150,138);x.font='20px '+F;x.textAlign='right';x.fillText('তারিখ: '+ds+' • পাতা '+bn(pg),W-50,138);x.textAlign='left'}
+ function next(){if(col<2){col++;y=TOP}else page()}
+ function cell(X,w,t,bold,fill,Y){if(fill){x.fillStyle=fill;x.fillRect(X,Y,w,RH);x.fillStyle='#000'}x.strokeRect(X,Y,w,RH);x.font=(bold?'bold ':'')+'20px '+F;x.textAlign='center';x.fillText(t,X+w/2,Y+25,w-10);x.textAlign='left'}
+ function hdr(t,n){var X=CX[col];x.strokeRect(X,y,CW,42);x.font='bold 25px '+F;x.textAlign='center';x.fillText(t,X+CW/2,y+30,CW-10);x.textAlign='left';y+=42;cell(X,AW,'হিসাব নং',true,'#e6e6e6',y);cell(X+AW,CW-AW,'আবাসিক বই',true,'#e6e6e6',y);y+=RH}
+ page();
+ bl.forEach(function(b){var t='সেচ বই নং '+bn(b.ib)+' ('+bn(b.rows.length)+')';if(y+42+RH*2>BOT)next();hdr(t);
+  b.rows.forEach(function(r){if(y+RH>BOT){next();hdr('সেচ বই নং '+bn(b.ib)+' (চলমান)')}var X=CX[col];cell(X,AW,bn(r.acc),true,null,y);cell(X+AW,CW-AW,bn(r.bk),false,null,y);y+=RH});y+=26});
+ jp.push(c.toDataURL('image/jpeg',0.92));
+ try{await dl.save({filename:'sech-collection-serial.pdf',data:pdfFrom(jp,W,H)})}catch(e){}}
+var PLAN=null;
+function gv(i){return document.getElementById(i).value}
+function slug(t){return String(t).replace(/[\\\/:*?"<>|\s]+/g,'_')}
+function ymd(){var d=new Date();return d.getFullYear()+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2)}
+function pick(ss,bb){var out=[];D.s.forEach(function(sc){if(ss!='all'&&sc.id!=ss)return;var c=JSON.parse(JSON.stringify(sc));
+ if(ss!='all'&&bb!='all'){c.b=c.b.filter(function(x){return x.id==bb});var no=c.b[0]&&c.b[0].no;c.irr=(c.irr||[]).filter(function(g){return g.bk==no})}out.push(c)});return out}
+function openBackup(){var ss=V.s||'all',bb=V.b||'all';
+ showM('<h3>💾 ব্যাকআপ ও ইমপোর্ট</h3><div id="sst" class="note" style="margin:10px 16px 0;line-height:1.7"></div><label>কোন সিডিউলের</label><select id="bsS" onchange="bkSel()"><option value="all">সব সিডিউল</option>'+D.s.map(function(x){return'<option value="'+x.id+'"'+(x.id==ss?' selected':'')+'>'+esc(x.name)+'</option>'}).join('')+'</select><label>কোন বইয়ের</label><select id="bsB"></select>'+
+ '<div class="row" style="margin-top:12px"><button class="p sp" onclick="doBackup(\'json\')">💾 ব্যাকআপ (JSON)</button><button class="sp" onclick="doBackup(\'xlsx\')">📊 এক্সেল ফাইল</button></div>'+
+ '<label style="margin-top:16px">ইমপোর্ট / ফেরত আনুন</label><input type="file" id="imf" accept=".xlsx,.xls,.csv,.json" onchange="pickFile(this)"><div class="note" style="margin-top:4px">এক্সেল (.xlsx, .xls, .csv) থেকে তথ্য ইনপুট, অথবা আগের ব্যাকআপ (.json) ফেরত আনুন।</div>'+
+ '<div class="row" style="margin-top:10px"><button class="s" onclick="doTemplate()">এক্সেল নমুনা ফাইল</button><button class="s" onclick="openSnaps()">🕘 স্বয়ংক্রিয় কপি</button></div>'+
+ '<div id="err" class="note" style="color:var(--dng);min-height:20px;margin-top:6px"></div><div class="row" style="margin-top:8px"><button class="sp" onclick="closeM()">বন্ধ করুন</button></div>');bkSel(bb);fillStatus()}
+function bkSel(pre){var ss=gv('bsS'),b=document.getElementById('bsB'),sc=D.s.find(function(x){return x.id==ss});
+ b.innerHTML='<option value="all">সব বই</option>'+(sc?sc.b.map(function(x){return'<option value="'+x.id+'">বই '+bn(x.no)+'</option>'}).join(''):'');b.disabled=ss=='all';if(typeof pre=='string'&&pre!='all')b.value=pre}
+function toWb(data){var E=[['সিডিউল','বই নং','ক্রমিক','ধরন','সম্ভাব্য হিসাব নং','হিসাব নং','ট্যারিফ','নাম','মোবাইল','মিটার নং','সীল নং','রিডিং','মন্তব্য']],I=[['সিডিউল','গ্রুপ বই নং','ক্রমিক','সেচ বই নং','হিসাব নং','মন্তব্য','উপরের সাথে একই']],K=[['সিডিউল','বই নং']];
+ data.forEach(function(sc){sc.b.forEach(function(bk){K.push([sc.name,bk.no]);bk.e.forEach(function(e,i){var tf=(T.filter(function(z){return e.t&&e.t[z[0]]})[0]||[''])[0];E.push([sc.name,bk.no,i+1,e.nw?'নতুন':(e.t&&e.t.DC?'অনিয়মিত':'নিয়মিত'),e.pa||'',e.nw?'':e.acc,tf,e.nm||'',e.mb||'',e.mt||'',e.sl||'',e.rd||'',e.n||''])})});
+  (sc.irr||[]).forEach(function(g){g.e.forEach(function(e,i){I.push([sc.name,g.bk,i+1,e.ib,e.acc,e.same?'':(e.n||''),e.same?'হ্যাঁ':''])})})});
+ var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(E),'এন্ট্রি');XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(I),'সেচ');XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(K),'বই');return wb}
+async function saveFile(name,blob){var er=document.getElementById('err'),dl=null;try{dl=await claude.use('downloads')}catch(e){}
+ if(!dl){er.textContent='এই পেজে ফাইল ডাউনলোড করা যাচ্ছে না';return}
+ try{await dl.save({filename:name,data:blob});er.style.color='var(--pri)';er.textContent='✓ ফাইল সেভের জন্য পাঠানো হয়েছে';if(/^backup-/.test(name)){D.lb=Date.now();save()}}catch(e){}}
+function doBackup(kind){var ss=gv('bsS'),bb=gv('bsB'),er=document.getElementById('err'),data=pick(ss,bb);er.style.color='var(--dng)';
+ if(!data.length){er.textContent='ব্যাকআপ নেওয়ার মতো তথ্য নেই';return}
+ var nm='backup-'+(ss=='all'?'all':slug(data[0].name)+(bb!='all'&&data[0].b[0]?'-book'+data[0].b[0].no:''))+'-'+ymd();
+ if(kind=='json')saveFile(nm+'.json',new Blob([JSON.stringify({app:'bill-serial',v:1,date:new Date().toISOString(),org:D.org,s:data})],{type:'application/json'}));
+ else{if(typeof XLSX=='undefined'){er.textContent='এক্সেল লাইব্রেরি লোড হয়নি (ইন্টারনেট দরকার)';return}
+  saveFile(nm+'.xlsx',new Blob([XLSX.write(toWb(data),{bookType:'xlsx',type:'array'})],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}))}}
+function doTemplate(){var er=document.getElementById('err');if(typeof XLSX=='undefined'){er.textContent='এক্সেল লাইব্রেরি লোড হয়নি (ইন্টারনেট দরকার)';return}
+ var d=[{name:'মিলন বাজার',b:[{no:'375',e:[{acc:'1691',t:{B:true},n:'রাস্তার ওপর পাশ'},{acc:'1652',t:{C:true,DC:true},n:''},{nw:true,pa:'2800',nm:'বিলাস',mb:'01785373548',mt:'123456',sl:'789',rd:'25',t:{B:true},n:''}]}],irr:[{bk:'375',e:[{ib:'402',acc:'4460',n:'খালের পরে'},{ib:'402',acc:'4408',same:true}]}]}];
+ saveFile('excel-template.xlsx',new Blob([XLSX.write(toWb(d),{bookType:'xlsx',type:'array'})],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}))}
+var HM={sc:['সিডিউল','schedule'],bk:['বই নং','বই','book','book no','bookno'],sr:['ক্রমিক','ক্রমিক নং','serial','sl no','slno'],kd:['ধরন','kind'],pa:['সম্ভাব্য হিসাব নং'],ac:['হিসাব নং','হিসাব','account','account no','acc'],tf:['ট্যারিফ','tariff','type'],dc:['dc'],nm:['নাম','name'],mb:['মোবাইল','মোবাইল নং','mobile'],mt:['মিটার নং','meter','meter no'],sl:['সীল নং','seal','seal no'],rd:['রিডিং','reading'],n:['মন্তব্য','note','comment','remarks'],gb:['গ্রুপ বই নং'],ib:['সেচ বই নং'],sm:['উপরের সাথে একই']};
+function hmap(row){var m={};row.forEach(function(c,i){var t=String(c).trim().toLowerCase().replace(/\s+/g,' ');for(var k in HM)if(m[k]==null&&HM[k].indexOf(t)>=0){m[k]=i;break}});return m}
+function pad(v,n){v=en(String(v||'')).replace(/\D/g,'');while(v&&v.length<n)v='0'+v;return v}
+function pmob(v){v=en(String(v||'')).replace(/\D/g,'');if(v.length==13&&v.slice(0,3)=='880')v='0'+v.slice(3);if(v.length==10&&v[0]=='1')v='0'+v;return v}
+function yes(v){return['হ্যাঁ','হ্যা','yes','y','1','true','x','✓','dc'].indexOf(String(v).trim().toLowerCase())>=0}
+function parseRows(rows,mode){var hi=-1,m;
+ for(var r=0;r<Math.min(rows.length,10);r++){var mm=hmap(rows[r]);if(mode=='e'?(mm.bk!=null&&(mm.ac!=null||mm.pa!=null)):mode=='i'?(mm.ib!=null&&mm.ac!=null&&(mm.gb!=null||mm.bk!=null)):(mm.bk!=null)){hi=r;m=mm;break}}
+ if(hi<0)return null;var recs=[],errs=[];
+ for(var r=hi+1;r<rows.length;r++){var row=rows[r];if(!row||row.every(function(v){return String(v).trim()===''}))continue;
+  var g=function(k){return m[k]!=null&&row[m[k]]!=null?String(row[m[k]]).trim():''},sr=parseInt(pad(g('sr'),1))||0,sc=g('sc'),bad=function(t){errs.push({row:r+1,msg:t})};
+  if(mode=='b'){var b=pad(g('bk'),3);if(/^\d{3}$/.test(b))recs.push({sc:sc,bk:b});else bad('বই নং ৩ সংখ্যার নয়');continue}
+  if(mode=='i'){var gb=pad(g('gb')||g('bk'),3),ib=pad(g('ib'),3),ac=pad(g('ac'),4);
+   if(!/^\d{3}$/.test(gb))bad('গ্রুপ বই নং ৩ সংখ্যার নয়');else if(!/^\d{3}$/.test(ib))bad('সেচ বই নং ৩ সংখ্যার নয়');else if(!/^\d{4}$/.test(ac))bad('হিসাব নং ৪ সংখ্যার নয়');else recs.push({sc:sc,gb:gb,ib:ib,acc:ac,n:g('n'),same:yes(g('sm')),sr:sr});continue}
+  var bk=pad(g('bk'),3),acc=pad(g('ac'),4),pa=pad(g('pa'),4),mb=pmob(g('mb')),nw=g('kd')=='নতুন'||(!acc&&!!(pa||g('nm')||g('mt'))),tf=g('tf').toUpperCase().replace(/\s/g,'');
+  if(!T.some(function(z){return z[0]==tf}))tf='B';
+  if(!/^\d{3}$/.test(bk)){bad('বই নং ৩ সংখ্যার নয়');continue}
+  if(!nw&&!/^\d{4}$/.test(acc)){bad('হিসাব নং ৪ সংখ্যার নয়');continue}
+  if(nw){if(pa&&!/^\d{4}$/.test(pa)){bad('সম্ভাব্য হিসাব নং ৪ সংখ্যার নয়');continue}if(mb&&!/^\d{11}$/.test(mb)){bad('মোবাইল নং ১১ সংখ্যার নয়');continue}if(!g('nm')&&!g('mt')){bad('নাম বা মিটার নং নেই');continue}}
+  var t={};t[tf]=true;var kk=g('kd').toLowerCase();if(!nw&&(yes(g('dc'))||['অনিয়মিত','সংযোগ বিচ্ছিন্ন','irregular','disconnected'].indexOf(kk)>=0))t.DC=true;
+  recs.push({sc:sc,bk:bk,sr:sr,nw:nw,acc:nw?'':acc,pa:nw?pa:'',t:t,nm:g('nm'),mb:mb,mt:en(g('mt')),sl:en(g('sl')),rd:en(g('rd')),n:g('n')})}
+ return{recs:recs,errs:errs}}
+function planWb(wb){var N=wb.SheetNames,er=document.getElementById('err'),get=function(n){return N.indexOf(n)>=0?XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,raw:false,defval:''}):null},re=get('এন্ট্রি'),ri=get('সেচ'),rb=get('বই');
+ if(!re&&!ri&&!rb)re=XLSX.utils.sheet_to_json(wb.Sheets[N[0]],{header:1,raw:false,defval:''});
+ var a=re&&parseRows(re,'e'),b=ri&&parseRows(ri,'i'),c=rb&&parseRows(rb,'b'),P={k:'wb',recs:[],irr:[],books:[],errs:[]};
+ if(!a&&!b&&!c){er.textContent='"বই নং" ও "হিসাব নং" কলাম পাওয়া যায়নি। নমুনা ফাইলটি দেখুন।';return}
+ if(a){P.recs=a.recs;P.errs=P.errs.concat(a.errs)}if(b){P.irr=b.recs;P.errs=P.errs.concat(b.errs)}if(c)P.books=c.recs;showPlan(P)}
+function planJson(o){if(!o||o.app!='bill-serial'||!Array.isArray(o.s))throw 0;var nb=0,ne=0,ni=0;o.s.forEach(function(sc){nb+=sc.b.length;sc.b.forEach(function(b){ne+=b.e.length});(sc.irr||[]).forEach(function(g){ni+=g.e.length})});
+ PLAN={k:'json',obj:o};showM('<h3>ব্যাকআপ ফেরত আনা</h3><div style="margin:12px 16px 0;line-height:1.7"><div>সিডিউল: <b>'+bn(o.s.length)+'</b> • বই: <b>'+bn(nb)+'</b></div><div>এন্ট্রি: <b>'+bn(ne)+'</b> • সেচ এন্ট্রি: <b>'+bn(ni)+'</b></div><div class="note" style="margin-top:8px">⚠ একই নামের সিডিউলে একই বই নংয়ের বর্তমান তথ্য ব্যাকআপের তথ্য দিয়ে বদলে যাবে। বাকি তথ্য অক্ষত থাকবে।</div></div><div id="err" class="note" style="color:var(--dng);min-height:20px"></div><div class="row" style="margin-top:8px"><button class="p sp" onclick="applyPlan()">ফেরত আনুন</button><button class="sp" onclick="closeM()">বাতিল</button></div>')}
+function showPlan(P){PLAN=P;var all=P.recs.concat(P.irr,P.books),needS=all.some(function(r){return!r.sc}),nB={};all.forEach(function(r){nB[(r.sc||'*')+'|'+(r.bk||r.gb)]=1});
+ var h='<h3>ইমপোর্ট যাচাই</h3><div style="margin:12px 16px 0;line-height:1.7"><div>বই: <b>'+bn(Object.keys(nB).length)+'</b> টি</div><div>নিয়মিত এন্ট্রি: <b>'+bn(P.recs.filter(function(r){return!r.nw}).length)+'</b> • নতুন মিটার: <b>'+bn(P.recs.filter(function(r){return r.nw}).length)+'</b></div><div>সেচ এন্ট্রি: <b>'+bn(P.irr.length)+'</b></div>'+
+ (P.errs.length?'<div style="color:var(--dng)">বাদ যাবে (ভুল সারি): <b>'+bn(P.errs.length)+'</b> টি<br><small>'+P.errs.slice(0,4).map(function(x){return'সারি '+bn(x.row)+': '+x.msg}).join('<br>')+(P.errs.length>4?'<br>…':'')+'</small></div>':'')+'<div class="note">একই বইয়ে আগে থেকে থাকা হিসাব নং বাদ যাবে; বাকিগুলো বইয়ের শেষে যোগ হবে।</div></div>';
+ if(needS)h+='<label>কোন সিডিউলে ইমপোর্ট হবে</label><select id="impS" onchange="document.getElementById(\'impN\').style.display=this.value==\'__new\'?\'\':\'none\'"><option value="__new">+ নতুন সিডিউল</option>'+D.s.map(function(x){return'<option value="'+x.id+'"'+(x.id==V.s?' selected':'')+'>'+esc(x.name)+'</option>'}).join('')+'</select><input id="impN" placeholder="নতুন সিডিউলের নাম" style="margin-top:8px;display:'+(V.s?'none':'')+'">';
+ h+='<div id="err" class="note" style="color:var(--dng);min-height:20px;margin-top:6px"></div><div class="row" style="margin-top:8px"><button class="p sp" onclick="applyPlan()">ইমপোর্ট করুন</button><button class="sp" onclick="closeM()">বাতিল</button></div>';showM(h)}
+function ordered(list,kf){var order=[],mp={};list.forEach(function(r,i){r.i=i;var k=kf(r);if(!mp[k]){mp[k]=[];order.push(k)}mp[k].push(r)});var out=[];order.forEach(function(k){var a=mp[k];if(a.every(function(r){return r.sr>0}))a.sort(function(x,y){return x.sr-y.sr||x.i-y.i});out=out.concat(a)});return out}
+function applyPlan(){var P=PLAN,er=document.getElementById('err'),tn='';if(!P)return;snap('ইমপোর্ট/ফেরত আনার আগে');
+ function sc(n){var x=D.s.find(function(z){return z.name==n});if(!x){x={id:uid(),name:n,b:[]};D.s.push(x)}return x}
+ if(P.k=='json'){P.obj.s.forEach(function(c){var x=D.s.find(function(z){return z.name==c.name});if(!x){D.s.push(c);return}
+   c.b.forEach(function(bk){var y=x.b.find(function(z){return z.no==bk.no});if(y)y.e=bk.e;else x.b.push(bk)});
+   (c.irr||[]).forEach(function(g){x.irr=x.irr||[];var y=x.irr.find(function(z){return z.bk==g.bk});if(y)y.e=g.e;else x.irr.push(g)})});
+  if(!D.org&&P.obj.org)D.org=P.obj.org;save();closeM();render();afterImport('ব্যাকআপের তথ্য যোগ করা হয়েছে।');return}
+ var sel=document.getElementById('impS');if(sel){if(sel.value=='__new'){tn=gv('impN').trim();if(!tn){er.textContent='সিডিউলের নাম দিন';return}}else tn=D.s.find(function(z){return z.id==sel.value}).name}
+ var cnt={e:0,n:0,i:0,skip:0};
+ function bkf(s,no){var b=s.b.find(function(z){return z.no==no});if(!b){b={id:uid(),no:no,e:[]};s.b.push(b)}return b}
+ P.books.forEach(function(r){bkf(sc(r.sc||tn),r.bk)});
+ ordered(P.recs,function(r){return(r.sc||tn)+'|'+r.bk}).forEach(function(r){var b=bkf(sc(r.sc||tn),r.bk),k=r.nw?r.pa:r.acc;
+  if(k&&b.e.some(function(e){return(!e.nw&&e.acc==k)||(e.nw&&e.pa==k)})){cnt.skip++;return}
+  b.e.push({id:uid(),nw:r.nw,n:r.n,pa:r.pa,nm:r.nm,sl:r.sl,mb:r.mb,rd:r.rd,mt:r.mt,acc:r.acc,t:r.t});if(r.nw)cnt.n++;else cnt.e++});
+ ordered(P.irr,function(r){return(r.sc||tn)+'|'+r.gb}).forEach(function(r){var s=sc(r.sc||tn);s.irr=s.irr||[];var g=s.irr.find(function(z){return z.bk==r.gb});if(!g){g={id:uid(),bk:r.gb,e:[]};s.irr.push(g)}
+  if(g.e.some(function(e){return e.ib==r.ib&&e.acc==r.acc})){cnt.skip++;return}
+  g.e.push({id:uid(),ib:r.ib,acc:r.acc,n:r.same?'':r.n,same:!!(r.same&&g.e.length)});cnt.i++});
+ save();closeM();render();afterImport('নিয়মিত '+bn(cnt.e)+' • নতুন মিটার '+bn(cnt.n)+' • সেচ '+bn(cnt.i)+' টি যোগ হয়েছে।'+(cnt.skip?' ডুপ্লিকেট হওয়ায় '+bn(cnt.skip)+' টি বাদ গেছে।':''))}
+function pickFile(inp){var f=inp.files&&inp.files[0],er=document.getElementById('err');if(!f)return;er.style.color='var(--dng)';er.textContent='';var ext=(f.name.split('.').pop()||'').toLowerCase(),r=new FileReader();
+ r.onerror=function(){er.textContent='ফাইল পড়া যায়নি'};
+ if(ext=='json'){r.onload=function(){try{planJson(JSON.parse(r.result))}catch(e){er.textContent='ব্যাকআপ ফাইলটি সঠিক নয়'}};r.readAsText(f)}
+ else{if(typeof XLSX=='undefined'){er.textContent='এক্সেল লাইব্রেরি লোড হয়নি (ইন্টারনেট দরকার)';return}
+  r.onload=function(){try{planWb(XLSX.read(new Uint8Array(r.result),{type:'array',codepage:65001}))}catch(e){er.textContent='এক্সেল ফাইলটি পড়া যায়নি'}};r.readAsArrayBuffer(f)}}
+function hd(){var o=D.org||{};document.getElementById('ht').textContent=(o.zo||'অ্যাপ সেটআপ')+' • Bill Distribution Apps';document.getElementById('hs').textContent=o.sm||''}
+function openOrg(edit){var o=D.org||{};showM('<h3>'+(edit?'সমিতি ও অফিসের তথ্য':'স্বাগতম! শুরু করার আগে')+'</h3>'+(edit?'':'<div class="note" style="margin:12px 16px 0">আপনার সমিতি ও জোনাল অফিসের নাম দিন। এটি অ্যাপের উপরে ও রিপোর্টে ব্যবহার হবে। পরে যেকোনো সময় উপরের নামে চেপে বদলানো যাবে।</div>')+'<label>সমিতির নাম</label><input id="osm" value="'+esc(o.sm||'')+'" placeholder="যেমন: জামালপুর পল্লী বিদ্যুৎ সমিতি"><label>জোনাল অফিসের নাম</label><input id="ozo" value="'+esc(o.zo||'')+'" placeholder="যেমন: মাদারগঞ্জ জোনাল অফিস"><div id="err" class="note" style="color:var(--dng);min-height:20px;margin-top:6px"></div><div class="row" style="margin-top:8px"><button class="p sp" onclick="saveOrg()">'+(edit?'সেভ':'শুরু করুন')+'</button>'+(edit?'<button onclick="closeM()">বাতিল</button>':'')+'</div>')}
+function saveOrg(){var a=gv('osm').trim(),b=gv('ozo').trim();if(!a||!b){document.getElementById('err').textContent='দুটি নামই দিতে হবে';return}D.org={sm:a,zo:b};save();closeM();render()}
+var RES=[];
+function openSearch(){if(!(D.org&&D.org.sm))return;showM('<h3>🔍 খুঁজুন</h3><div class="row" style="flex-wrap:nowrap;align-items:flex-start;margin-top:4px"><div style="width:104px"><label>বই নং</label><input id="sb" inputmode="numeric" maxlength="3" oninput="dg(this,3);doSearch()" placeholder="৩৭৫" style="width:100%"></div><div class="sp" style="min-width:0"><label>হিসাব নং</label><input id="sq" inputmode="numeric" maxlength="4" oninput="dg(this,4);doSearch()" placeholder="১৬৯১" style="width:100%"></div></div><div id="sres" style="margin-top:8px"></div><div class="row" style="margin:12px 16px 16px"><button class="sp" onclick="closeM()">বন্ধ করুন</button></div>');doSearch()}
+function doSearch(){var bq=en(document.getElementById('sb').value.trim()),q=en(document.getElementById('sq').value.trim()),el=document.getElementById('sres');RES=[];
+ if(!bq&&q.length<2){el.innerHTML='<div class="note" style="margin:0 16px">বই নং ও হিসাব নং দুটোই লিখতে পারেন, অথবা যেকোনো একটি (হিসাব নং কমপক্ষে ২ সংখ্যা)।</div>';return}
+ D.s.forEach(function(sc){sc.b.forEach(function(bk){if(bq&&String(bk.no).indexOf(bq)!=0)return;bk.e.forEach(function(e,i){var k=e.nw?e.pa:e.acc;if(q&&!(k&&k.indexOf(q)>=0))return;RES.push({k:k||'',sc:sc,bk:bk,i:i,e:e})})});
+  (sc.irr||[]).forEach(function(g){g.e.forEach(function(e,i){if(bq&&g.bk.indexOf(bq)!=0&&e.ib.indexOf(bq)!=0)return;if(q&&e.acc.indexOf(q)<0)return;RES.push({irr:1,k:e.acc,sc:sc,g:g,i:i,e:e})})})});
+ if(q)RES.sort(function(a,b){return(b.k==q)-(a.k==q)});var tot=RES.length;RES=RES.slice(0,50);
+ if(!tot){el.innerHTML='<div class="note" style="margin:0 16px;color:var(--dng)">কিছু পাওয়া যায়নি।</div>';return}
+ el.innerHTML='<div class="note" style="margin:0 16px 6px">'+bn(tot)+' টি পাওয়া গেছে'+(tot>50?' (প্রথম ৫০টি)':'')+'</div>'+RES.map(function(r,n){var e=r.e,h;
+  if(r.irr)h='<b style="font-size:18px">💧 '+bn(e.ib)+'/'+bn(e.acc)+'</b><div class="note">সিডিউল: '+esc(r.sc.name)+' • বই '+bn(r.g.bk)+' (সেচ বিতরণ) • ক্রমিক '+bn(r.i+1)+(e.same?'':(e.n?' • '+esc(e.n):''))+'</div>';
+  else h='<b style="font-size:18px">'+(r.k?bn(r.k):'নতুন মিটার')+'</b>'+(e.nw?' <span class="tag" style="border-color:var(--dng);color:var(--dng)">নতুন'+(r.k?' • সম্ভাব্য':'')+'</span>':T2.filter(function(z){return e.t&&e.t[z[0]]}).map(function(z){return'<span class="tag">'+z[0]+'</span>'}).join(''))+'<div class="note">সিডিউল: '+esc(r.sc.name)+' • বই '+bn(r.bk.no)+' • ক্রমিক '+bn(r.i+1)+(e.n?' • '+esc(e.n):'')+'</div>';
+  return'<div class="card" style="margin:6px 16px;cursor:pointer" onclick="goRes('+n+')">'+h+'</div>'}).join('')}
+function goRes(n){var r=RES[n];if(!r)return;closeM();V.s=r.sc.id;V.mode='list';if(r.irr){V.irr=true;V.g=r.g.id;V.b=null}else{V.irr=false;V.g=null;V.b=r.bk.id}render();
+ setTimeout(function(){var el=document.querySelectorAll('#app .ent')[r.i];if(el){el.classList.add('hl');el.scrollIntoView({block:'center'})}},60)}
+function orgHd(x,W,F){var o=D.org||{};x.fillStyle='#000';x.textAlign='center';x.font='bold 32px '+F;x.fillText(o.sm||'',(150+W-50)/2,52,W-200);x.font='bold 26px '+F;x.fillText(o.zo||'',(150+W-50)/2,90,W-200);x.font='16px '+F;x.fillStyle='#444';x.fillText('Powered By : Bilash Chondro',(150+W-50)/2,x.canvas.height-24);x.fillStyle='#000';x.textAlign='left'}
+function makePdf(){var b=B();if(!b)return;var per=210,h='',pages=Math.max(1,Math.ceil(b.e.length/per));
+for(var p=0;p<pages;p++){var sl=b.e.slice(p*per,(p+1)*per);h+='<div class="pg"><div style="text-align:center;font-weight:700;font-size:20px">'+esc((D.org||{}).sm)+'</div><div style="text-align:center;font-weight:700;font-size:16px;margin-bottom:6px">'+esc((D.org||{}).zo)+'</div><div class="ph"><b>'+bn(b.no)+' নং বইয়ের বিল বিতরণের সিরিয়াল</b><span>'+bn(b.e.length)+'</span></div><table><tbody>';
+ for(var r=0;r<30;r++){h+='<tr>';for(var c=0;c<7;c++){var e=sl[c*30+r],s='';if(e){s=esc(sub(e))}h+='<td>'+(e?'<b>'+lab(e)+'</b>'+(s?'<small>'+s+'</small>':''):'')+'</td>'}h+='</tr>'}
+ h+='</tbody></table><div class="pn">'+bn(p+1)+'</div><div style="text-align:center;font-size:12px;color:#444;margin-top:6px">Powered By : Bilash Chondro</div></div>'}
+document.getElementById('ps').innerHTML=h;window.print()}
+/* ===== v2 layer: storage, backup, restore, folders (added; original code untouched) ===== */
+/*PURE-START*/
+var DBV=2,APPV='2.0';
+function p2(n){return('0'+n).slice(-2)}
+function ymd(){var d=new Date();return d.getFullYear()+p2(d.getMonth()+1)+p2(d.getDate())+'-'+p2(d.getHours())+p2(d.getMinutes())+p2(d.getSeconds())}
+function b64(u){var s='';for(var i=0;i<u.length;i+=8192)s+=String.fromCharCode.apply(null,u.subarray(i,i+8192));return btoa(s)}
+function ub64(s){var b=atob(s),u=new Uint8Array(b.length);for(var i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u}
+async function sha(t){if(!(window.crypto&&crypto.subtle))return null;var h=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return Array.from(new Uint8Array(h)).map(function(x){return('0'+x.toString(16)).slice(-2)}).join('')}
+function cnts(s){var c={sc:s.length,bk:0,e:0,nw:0,irr:0};s.forEach(function(x){x.b.forEach(function(b){c.bk++;b.e.forEach(function(e){e.nw?c.nw++:c.e++})});(x.irr||[]).forEach(function(g){c.irr+=g.e.length})});return c}
+function valid(s){if(!Array.isArray(s))return'তথ্যের কাঠামো সঠিক নয়';
+ for(var i=0;i<s.length;i++){var x=s[i];if(!x||typeof x.name!='string'||!Array.isArray(x.b))return'সিডিউল '+(i+1)+' ক্ষতিগ্রস্ত';
+  for(var j=0;j<x.b.length;j++){var b=x.b[j];if(!b||!/^\d{3}$/.test(String(b.no))||!Array.isArray(b.e))return'বই ক্ষতিগ্রস্ত ('+x.name+')';
+   for(var k=0;k<b.e.length;k++){var e=b.e[k];if(!e||typeof e!='object'||!e.t||typeof e.t!='object')return'এন্ট্রি ক্ষতিগ্রস্ত ('+x.name+' › '+b.no+' › '+(k+1)+')'}}
+  if(x.irr){if(!Array.isArray(x.irr))return'সেচ তথ্য ক্ষতিগ্রস্ত';for(var m=0;m<x.irr.length;m++){var g=x.irr[m];if(!g||!Array.isArray(g.e))return'সেচ গ্রুপ ক্ষতিগ্রস্ত ('+x.name+')'}}}return''}
+async function mkEnv(s,org,kind){var o={app:'bill-serial',appName:'Bill Distribution Apps',v:2,dbv:DBV,appv:APPV,created:new Date().toISOString(),kind:kind||'manual',counts:cnts(s),org:org||null,s:s};o.sha256=await sha(JSON.stringify({org:o.org,s:o.s}));return o}
+function dkey(pw,salt){return crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveKey']).then(function(m){return crypto.subtle.deriveKey({name:'PBKDF2',salt:salt,iterations:250000,hash:'SHA-256'},m,{name:'AES-GCM',length:256},false,['encrypt','decrypt'])})}
+async function encT(txt,pw){var salt=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12)),k=await dkey(pw,salt),c=await crypto.subtle.encrypt({name:'AES-GCM',iv:iv},k,new TextEncoder().encode(txt));return JSON.stringify({app:'bill-serial',enc:1,kdf:'PBKDF2-SHA256-250000',salt:b64(salt),iv:b64(iv),data:b64(new Uint8Array(c))})}
+async function decT(o,pw){var k=await dkey(pw,ub64(o.salt)),p=await crypto.subtle.decrypt({name:'AES-GCM',iv:ub64(o.iv)},k,ub64(o.data));return new TextDecoder().decode(p)}
+/*PURE-END*/
+
+var ROOT='Bill Distribution Apps',FH=null,FP=false,CORR='',BKERR='',MT=null,
+FOLD={db:'01 - Database',day:'02 - Daily Backup',mon:'03 - Monthly Backup',man:'04 - Manual Backup',xl:'05 - Excel Files',pdf:'06 - PDF Reports',rec:'07 - Recovery',imp:'08 - Imported Files'};
+
+/* ---- folder access ---- */
+async function folderOk(ask){if(!FH)return false;try{var o={mode:'readwrite'};if(await FH.queryPermission(o)==='granted'){FP=true;return true}if(ask&&await FH.requestPermission(o)==='granted'){FP=true;return true}}catch(e){}FP=false;return false}
+async function pickFolder(){var er=document.getElementById('err');
+ if(!window.showDirectoryPicker){if(er){er.style.color='var(--dng)';er.textContent='এই ব্রাউজার/WebView ফোল্ডার নির্বাচন সমর্থন করে না'}return}
+ try{var h=await showDirectoryPicker({mode:'readwrite',id:'bda'});if(h.name!=ROOT)h=await h.getDirectoryHandle(ROOT,{create:true});
+  for(var k in FOLD)await h.getDirectoryHandle(FOLD[k],{create:true});
+  FH=h;FP=true;await idbPut('fh',h);fst();if(er){er.style.color='var(--pri)';er.textContent='✓ ফোল্ডার ও ৮টি সাব-ফোল্ডার তৈরি হয়েছে'}autoBk();mirror()}
+ catch(e){if(e&&e.name!='AbortError'&&er){er.style.color='var(--dng)';er.textContent='ফোল্ডার নির্বাচন ব্যর্থ'}}}
+async function ex(d,n){try{await d.getFileHandle(n);return true}catch(e){return false}}
+async function wr(k,name,blob){var d=await FH.getDirectoryHandle(FOLD[k],{create:true}),n=name,i=1;
+ while(await ex(d,n))n=name.replace(/(\.[^.]+)$/,'-'+(++i)+'$1');
+ var f=await d.getFileHandle(n,{create:true}),w=await f.createWritable();await w.write(blob);await w.close();
+ var g=await f.getFile();if(g.size!==blob.size)throw new Error('যাচাই ব্যর্থ: ফাইলের আকার মেলেনি');return n}
+async function capWrite(sub,name,blob){var P=window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.Filesystem;if(!P)return false;
+ await P.writeFile({path:ROOT+'/'+sub+'/'+name,directory:'DOCUMENTS',data:b64(new Uint8Array(await blob.arrayBuffer())),recursive:true});return true}
+async function outFile(name,data,k){var blob=data instanceof Blob?data:new Blob([data]);
+ k=k||(/\.xlsx$/.test(name)?'xl':/\.pdf$/.test(name)?'pdf':'man');
+ if(FH&&await folderOk(true)){var n=await wr(k,name,blob);return{where:ROOT+'/'+FOLD[k]+'/'+n}}
+ if(await capWrite(FOLD[k],name,blob))return{where:'Documents/'+ROOT+'/'+FOLD[k]};
+ var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},5000);
+ return{where:'ডাউনলোড ফোল্ডার (ব্রাউজার)',dl:1}}
+/* replaces the claude.use('downloads') dependency used by all PDF/Excel routes */
+window.claude={use:async function(){return{save:async function(o){var r=await outFile(o.filename,o.data);toast('✓ সেভ: '+esc(r.where))}}}};
+async function saveFile(name,blob){var er=document.getElementById('err');
+ try{if(/^backup-.*\.json$/.test(name)){var o=JSON.parse(await blob.text()),txt=JSON.stringify(await mkEnv(o.s,o.org,'manual')),pw=(document.getElementById('bkpw')||{}).value;
+   if(pw){txt=await encT(txt,pw);name=name.replace(/\.json$/,'.enc.json')}blob=new Blob([txt],{type:'application/json'})}
+  var r=await outFile(name,blob);if(er){er.style.color='var(--pri)';er.textContent='✓ সেভ হয়েছে: '+r.where+(r.dl?' — ডাউনলোড ফোল্ডারে ফাইলটি আছে কি না দেখে নিন':'')}
+  if(/^backup-/.test(name)){D.lb=Date.now();save()}}
+ catch(e){if(er){er.style.color='var(--dng)';er.textContent='⚠ ফাইল সেভ ব্যর্থ: '+(e&&e.message||'')}}}
+
+/* ---- automatic backups (run when the app opens; no background claims) ---- */
+async function prune(k,keep){var d=await FH.getDirectoryHandle(FOLD[k]),n=[];for await(var en of d.entries()){if(en[1].kind=='file'&&/^(daily|monthly)-\d{8}-\d{6}/.test(en[0]))n.push(en[0])}n.sort();while(n.length>keep)await d.removeEntry(n.shift())}
+async function autoBk(){if(!D.s.length||!FH||!(await folderOk(false)))return;
+ var d=new Date(),day=d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate()),mon=day.slice(0,7);
+ try{var txt=JSON.stringify(await mkEnv(D.s,D.org,'auto')),ch=false;
+  if(D.ld!==day){await wr('day','daily-'+ymd()+'.json',new Blob([txt]));D.ld=day;ch=true;await prune('day',30)}
+  if(D.lm!==mon){await wr('mon','monthly-'+ymd()+'.json',new Blob([txt]));D.lm=mon;ch=true;await prune('mon',12)}
+  BKERR='';if(ch)save()}catch(e){BKERR='স্বয়ংক্রিয় ব্যাকআপ ব্যর্থ: '+(e&&e.message||'');render()}}
+async function mirror(){if(!FH||!FP)return;try{var d=await FH.getDirectoryHandle(FOLD.db,{create:true}),f=await d.getFileHandle('database-latest.json',{create:true}),w=await f.createWritable();await w.write(JSON.stringify(await mkEnv(D.s,D.org,'database')));await w.close()}catch(e){BKERR='ডেটাবেজ ফাইল লেখা যায়নি'}}
+var _sv=save;save=function(){_sv();clearTimeout(MT);MT=setTimeout(mirror,2500)};
+
+/* ---- restore with preview + integrity checks + migration ---- */
+function bad(m){var er=document.getElementById('err');if(er){er.style.color='var(--dng)';er.textContent='⚠ রিস্টোর বাতিল: '+m}else info('রিস্টোর বাতিল',m)}
+function askPw(cb){CB=cb;showM('<h3>🔒 পাসওয়ার্ড দিন</h3><input id="pwx" type="password" style="margin:12px 16px;width:calc(100% - 32px)"><div class="row" style="margin-top:8px"><button class="p sp" onclick="var v=gv(\'pwx\'),f=CB;closeM();if(f)f(v)">খুলুন</button><button class="sp" onclick="closeM()">বাতিল</button></div>')}
+function lst(t,a){return a.length?'<div style="margin-top:8px"><b>'+t+' ('+bn(a.length)+')</b><div class="note">'+a.slice(0,8).map(esc).join('<br>')+(a.length>8?'<br>…':'')+'</div></div>':''}
+function planJson(o){
+ if(o&&o.enc){if(!(window.crypto&&crypto.subtle)){bad('এই পরিবেশে ডিক্রিপশন সমর্থিত নয় (HTTPS দরকার)');return}
+  return askPw(function(pw){decT(o,pw).then(function(t){planJson(JSON.parse(t))}).catch(function(){info('ডিক্রিপ্ট ব্যর্থ','পাসওয়ার্ড ভুল অথবা ফাইল ক্ষতিগ্রস্ত। কোনো তথ্য বদলায়নি।')})})}
+ if(!o||o.app!='bill-serial'||!Array.isArray(o.s)){bad('এটি Bill Distribution Apps-এর ব্যাকআপ নয়');return}
+ if((o.v||1)>2){bad('ব্যাকআপটি নতুন সংস্করণের — আগে অ্যাপ আপডেট করুন');return}
+ var pr=valid(o.s);if(pr){bad(pr);return}
+ (o.sha256?sha(JSON.stringify({org:o.org,s:o.s})):Promise.resolve(undefined)).then(function(h){
+  if(o.sha256&&h&&h!==o.sha256){bad('অখণ্ডতা যাচাই ব্যর্থ — ফাইল বদলে গেছে বা নষ্ট');return}
+  o.s.forEach(function(sc){sc.irr=sc.irr||[];sc.b.forEach(function(b){b.id=b.id||uid();b.e.forEach(function(e){e.id=e.id||uid()})});sc.irr.forEach(function(g){g.id=g.id||uid();g.e.forEach(function(e){e.id=e.id||uid()})})});
+  var c=cnts(o.s),add=[],rep=[],dup=0;
+  o.s.forEach(function(sc){var x=D.s.find(function(z){return z.name==sc.name});
+   sc.b.forEach(function(bk){var seen={};bk.e.forEach(function(e){if(!e.nw){if(seen[e.acc])dup++;seen[e.acc]=1}});
+    var y=x&&x.b.find(function(z){return z.no==bk.no});
+    if(y)rep.push(sc.name+' › বই '+bn(bk.no)+': '+bn(y.e.length)+' → '+bn(bk.e.length)+' এন্ট্রি');else add.push(sc.name+' › বই '+bn(bk.no)+(x?'':' (নতুন সিডিউল)'))})});
+  PLAN={k:'json',obj:o};
+  showM('<h3>ফেরত আনার আগে দেখুন</h3><div style="margin:12px 16px 0;line-height:1.7"><div>সিডিউল <b>'+bn(c.sc)+'</b> • বই <b>'+bn(c.bk)+'</b></div><div>নিয়মিত <b>'+bn(c.e)+'</b> • নতুন মিটার <b>'+bn(c.nw)+'</b> • সেচ <b>'+bn(c.irr)+'</b></div><div>ব্যাকআপের ভেতরে ডুপ্লিকেট হিসাব নং: <b>'+bn(dup)+'</b></div><div class="note">'+(o.sha256?(h?'✓ অখণ্ডতা (SHA-256) যাচাই সফল':'⚠ চেকসাম যাচাই করা যায়নি (HTTPS নয়); কাঠামো সঠিক'):'পুরোনো ফরম্যাট (v'+(o.v||1)+') — চেকসাম নেই, কাঠামো যাচাই সফল; v2-তে রূপান্তর হবে')+(o.created?' • তৈরি: '+esc(String(o.created).slice(0,16).replace('T',' ')):'')+'</div>'+lst('✚ যোগ হবে',add)+lst('↻ বদলে যাবে (বর্তমান এন্ট্রির জায়গায় ব্যাকআপের এন্ট্রি)',rep)+'<div class="note" style="margin-top:8px">এখানে উল্লেখ নেই এমন বর্তমান তথ্য মুছবে না। ফেরত আনার আগে বর্তমান অবস্থার রিকভারি কপি রাখা হবে।</div></div><div id="err" class="note" style="min-height:20px"></div><div class="row" style="margin-top:8px"><button class="p sp" onclick="applyPlan()">ফেরত আনুন</button><button class="sp" onclick="closeM()">বাতিল</button></div>')})}
+var _ap=applyPlan;applyPlan=function(){var go=function(){_ap()};
+ if(FH&&FP)mkEnv(D.s,D.org,'recovery').then(function(e){return wr('rec','recovery-'+ymd()+'.json',new Blob([JSON.stringify(e)]))}).then(go,function(){info('রিকভারি ফাইল সেভ হয়নি','ফোল্ডারে রিকভারি কপি লেখা যায়নি, কাজ থামানো হয়েছে। আবার চেষ্টা করুন।')});else go()};
+
+/* ---- DB version migration, corruption check, UI hooks ---- */
+function migrate(){var p=valid(D.s);if(p){CORR=p;render();return}
+ if((D.dbv||1)<DBV)snap('ডেটাবেজ আপগ্রেডের আগে (v'+(D.dbv||1)+'→v'+DBV+')').then(function(){D.s.forEach(function(sc){sc.irr=sc.irr||[]});D.dbv=DBV;save()})}
+var _bt=boot;boot=function(){_bt();migrate();idbGet('fh').then(function(h){if(h&&h.kind=='directory'){FH=h;folderOk(false).then(function(ok){if(ok)autoBk();render()})}})};
+var _wh=warnHtml;warnHtml=function(){var h=_wh();
+ if(CORR)h+='<div class="card" style="border-color:var(--dng);color:var(--dng)">⚠ সংরক্ষিত তথ্যে সমস্যা: '+esc(CORR)+' — স্বয়ংক্রিয় কপি বা ব্যাকআপ থেকে ফেরত আনুন।</div>';
+ if(FH&&!FP)h+='<div class="card" style="border-color:var(--dng)">📁 ব্যাকআপ ফোল্ডারের অনুমতি দরকার — <b style="text-decoration:underline" onclick="folderOk(true).then(function(o){render();if(o)autoBk()})">অনুমতি দিন</b></div>';
+ if(BKERR)h+='<div class="card" style="border-color:var(--dng);color:var(--dng)">⚠ '+esc(BKERR)+'</div>';return h};
+function fst(){var el=document.getElementById('fst');if(!el)return;el.innerHTML=FH?(FP?'✓ সংযুক্ত: '+esc(ROOT)+' — ফাইল এখানে সেভ হবে'+(D.ld?'<br>দৈনিক কপি: '+esc(D.ld)+(D.lm?' • মাসিক: '+esc(D.lm):''):''):'⚠ নির্বাচিত, কিন্তু অনুমতি দরকার'):(window.showDirectoryPicker?'নির্বাচন করা হয়নি — ফাইল ডাউনলোড ফোল্ডারে যাবে':(window.Capacitor?'ফাইল Documents/'+ROOT+'/ ফোল্ডারে সেভ হবে (SAF ফোল্ডার-নির্বাচন এখনো নেই)':'এই ব্রাউজারে ফোল্ডার নির্বাচন সমর্থিত নয় — ফাইল ডাউনলোড হবে'))}
+var _ob=openBackup;openBackup=function(){_ob();var e=document.getElementById('err');if(!e)return;var d=document.createElement('div');
+ d.innerHTML='<label style="margin-top:12px">🔒 ব্যাকআপ পাসওয়ার্ড (ঐচ্ছিক, শুধু JSON)</label><input id="bkpw" type="password" autocomplete="new-password" placeholder="খালি রাখলে এনক্রিপ্ট হবে না"><div class="note">পাসওয়ার্ড হারালে ব্যাকআপ খোলা যাবে না।</div><label style="margin-top:12px">📁 ফাইল ফোল্ডার</label><div id="fst" class="note"></div><div class="row"><button class="s" onclick="pickFolder()">📁 ফোল্ডার নির্বাচন</button></div>';
+ e.parentNode.insertBefore(d,e);fst()};
+
+render();boot();
+</script></body></html>
