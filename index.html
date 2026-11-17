@@ -3,6 +3,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Bill Distribution Apps</title>
 <meta name="application-name" content="Apps"><meta name="apple-mobile-web-app-title" content="Apps"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="theme-color" content="#0b7a4b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b7a4b'/%3E%3Ctext x='32' y='41' font-size='20' font-weight='bold' text-anchor='middle' fill='white' font-family='Arial'%3EApps%3C/text%3E%3C/svg%3E">
 <script src="xlsx.full.min.js" onerror="var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';document.head.appendChild(s)"></script>
 <style>
@@ -535,4 +539,12 @@ var _ob=openBackup;openBackup=function(){_ob();var e=document.getElementById('er
  e.parentNode.insertBefore(d,e);fst()};
 
 render();boot();
+
+/* PWA service-worker registration */
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('./service-worker.js')
+      .catch(function (err) { console.warn('PWA service worker registration failed:', err); });
+  });
+}
 </script></body></html>
